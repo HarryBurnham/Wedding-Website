@@ -12,7 +12,7 @@ export const WEDDING_CONFIG = {
     time: '15:00',
     description:
       'The ceremony begins at 15:00 and lasts approximately 30 minutes, followed by drinks, wedding breakfast, and dancing at the same venue.',
-    mapUrl: '<iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2413.1036664283333!2d-1.4416852872279375!3d52.78443877201547!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x4879fb7eaf43ea91%3A0x7d6c96e00dbc525b!2sStaunton%20Harold%20Hall%2C%20Melbourne%20Rd%2C%20Ashby-de-la-Zouch%20LE65%201RT!5e0!3m2!1sen!2suk!4v1767802812279!5m2!1sen!2suk" width="600" height="450" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>',
+    mapUrl: 'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2413.1036664283333!2d-1.4416852872279375!3d52.78443877201547!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x4879fb7eaf43ea91%3A0x7d6c96e00dbc525b!2sStaunton%20Harold%20Hall%2C%20Melbourne%20Rd%2C%20Ashby-de-la-Zouch%20LE65%201RT!5e0!3m2!1sen!2suk!4v1767802812279!5m2!1sen!2suk',
     photos: [
       '/images/Staunton-Harold-Estate.jpg',
       '/images/Staunton_Harold_Hall.jpg',
@@ -54,8 +54,6 @@ export const WEDDING_CONFIG = {
       phone: '01234 567890',
       priceRange: '£80-120 per night',
       distanceToVenue: '0.5 miles',
-      hasBlockBooking: true,
-      blockCode: 'BURNHAM2026',
     },
   ],
 

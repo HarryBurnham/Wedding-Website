@@ -125,7 +125,6 @@ export default function TravelAccommodation() {
             </div>
             </div>
           </div>
-        </div>
       </section>
 
       {/* Taxis & Local Transport */}

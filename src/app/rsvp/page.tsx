@@ -1,31 +1,37 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState } from 'react';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
 import { WEDDING_CONFIG } from '@/lib/constants';
 import { motion, AnimatePresence } from 'framer-motion';
 
-interface GuestMember {
-  id: string;
+interface Guest {
+  id: number;
+  code: string;
   name: string;
+  firstName: string;
+  lastName: string;
   isPlusOne: boolean;
 }
 
-interface GuestData {
-  id: string;
+interface Party {
+  id: number;
   code: string;
-  primary_guest_name: string;
-  members: GuestMember[];
+  name: string;
   invited_to_ceremony: boolean;
   invited_to_reception: boolean;
+}
+
+interface PartyData {
+  party: Party;
+  guests: Guest[];
   existing_rsvp?: {
     attending: { [key: string]: boolean };
     meal_choices: { [key: string]: string };
     dietary_restrictions: { [key: string]: string };
     song_request?: string;
     recipe_text?: string;
-    recipe_file_name?: string;
   };
 }
 
@@ -35,16 +41,15 @@ interface RSVPFormData {
   dietary_restrictions: { [key: string]: string };
   song_request: string;
   recipe_text: string;
-  recipe_file: File | null;
 }
 
 export default function RSVP() {
   const [step, setStep] = useState<'login' | 'form' | 'success'>('login');
-  const [code, setCode] = useState('');
+  const [partyName, setPartyName] = useState('');
+  const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [guestData, setGuestData] = useState<GuestData | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [partyData, setPartyData] = useState<PartyData | null>(null);
 
   const [formData, setFormData] = useState<RSVPFormData>({
     attending: {},
@@ -52,7 +57,6 @@ export default function RSVP() {
     dietary_restrictions: {},
     song_request: '',
     recipe_text: '',
-    recipe_file: null,
   });
 
   const rsvpDeadline = WEDDING_CONFIG.rsvpDeadline.toLocaleDateString('en-GB', {
@@ -61,31 +65,39 @@ export default function RSVP() {
     year: 'numeric',
   });
 
-  // Handle code lookup
-  const handleCodeSubmit = async (e: React.FormEvent) => {
+  // Handle party login
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setLoading(true);
 
     try {
-      const response = await fetch(`/api/guest/lookup?code=${encodeURIComponent(code.toUpperCase())}`);
+      const response = await fetch('/api/party/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          party_name: partyName.trim(),
+          password: password,
+        }),
+      });
+
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Guest not found');
+        throw new Error(data.error || 'Login failed');
       }
 
-      setGuestData(data);
+      setPartyData(data);
 
       // Initialize form data with existing RSVP if present
       const initialAttending: { [key: string]: boolean } = {};
       const initialMeals: { [key: string]: string } = {};
       const initialDietary: { [key: string]: string } = {};
 
-      data.members.forEach((member: GuestMember) => {
-        initialAttending[member.id] = data.existing_rsvp?.attending?.[member.id] ?? false;
-        initialMeals[member.id] = data.existing_rsvp?.meal_choices?.[member.id] ?? '';
-        initialDietary[member.id] = data.existing_rsvp?.dietary_restrictions?.[member.id] ?? '';
+      data.guests.forEach((guest: Guest) => {
+        initialAttending[guest.id] = data.existing_rsvp?.attending?.[guest.id] ?? false;
+        initialMeals[guest.id] = data.existing_rsvp?.meal_choices?.[guest.id] ?? '';
+        initialDietary[guest.id] = data.existing_rsvp?.dietary_restrictions?.[guest.id] ?? '';
       });
 
       setFormData({
@@ -94,7 +106,6 @@ export default function RSVP() {
         dietary_restrictions: initialDietary,
         song_request: data.existing_rsvp?.song_request ?? '',
         recipe_text: data.existing_rsvp?.recipe_text ?? '',
-        recipe_file: null,
       });
 
       setStep('form');
@@ -112,21 +123,17 @@ export default function RSVP() {
     setLoading(true);
 
     try {
-      const submitData = new FormData();
-      submitData.append('guest_id', guestData!.id);
-      submitData.append('attending', JSON.stringify(formData.attending));
-      submitData.append('meal_choices', JSON.stringify(formData.meal_choices));
-      submitData.append('dietary_restrictions', JSON.stringify(formData.dietary_restrictions));
-      submitData.append('song_request', formData.song_request);
-      submitData.append('recipe_text', formData.recipe_text);
-      
-      if (formData.recipe_file) {
-        submitData.append('recipe_file', formData.recipe_file);
-      }
-
       const response = await fetch('/api/rsvp/submit', {
         method: 'POST',
-        body: submitData,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          party_id: partyData!.party.id,
+          attending: formData.attending,
+          meal_choices: formData.meal_choices,
+          dietary_restrictions: formData.dietary_restrictions,
+          song_request: formData.song_request,
+          recipe_text: formData.recipe_text,
+        }),
       });
 
       const data = await response.json();
@@ -143,19 +150,12 @@ export default function RSVP() {
     }
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setFormData(prev => ({ ...prev, recipe_file: file }));
-    }
-  };
-
-  const toggleAttending = (memberId: string) => {
+  const toggleAttending = (guestId: number) => {
     setFormData(prev => ({
       ...prev,
       attending: {
         ...prev.attending,
-        [memberId]: !prev.attending[memberId],
+        [guestId]: !prev.attending[guestId],
       },
     }));
   };
@@ -183,7 +183,7 @@ export default function RSVP() {
       <section className="py-16 bg-white">
         <div className="max-w-2xl mx-auto px-6">
           <AnimatePresence mode="wait">
-            {/* Step 1: Enter Code */}
+            {/* Step 1: Login */}
             {step === 'login' && (
               <motion.div
                 key="login"
@@ -193,46 +193,67 @@ export default function RSVP() {
                 className="card"
               >
                 <h2 className="font-display text-2xl text-burgundy-900 text-center mb-6">
-                  Enter Your RSVP Code
+                  Welcome
                 </h2>
                 <p className="text-gray-600 text-center mb-8">
-                  Please enter the unique code from your invitation to access your personalized RSVP form.
+                  Please enter your party name and password to access your RSVP. 
+                  These details were included with your invitation.
                 </p>
 
-                <form onSubmit={handleCodeSubmit}>
+                <form onSubmit={handleLogin}>
                   <div className="mb-6">
+                    <label htmlFor="partyName" className="block text-sm font-medium text-gray-700 mb-2">
+                      Party Name
+                    </label>
                     <input
                       type="text"
-                      value={code}
-                      onChange={(e) => setCode(e.target.value.toUpperCase())}
-                      placeholder="Enter your code"
-                      className="input-field text-center text-2xl tracking-widest uppercase"
-                      maxLength={8}
+                      id="partyName"
+                      value={partyName}
+                      onChange={(e) => setPartyName(e.target.value)}
+                      placeholder="e.g. The Smith Family"
+                      className="input-field"
+                      required
+                    />
+                  </div>
+
+                  <div className="mb-6">
+                    <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+                      Password
+                    </label>
+                    <input
+                      type="password"
+                      id="password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="Enter your password"
+                      className="input-field"
                       required
                     />
                   </div>
 
                   {error && (
-                    <p className="text-red-600 text-center mb-4">{error}</p>
+                    <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded">
+                      <p className="text-red-600 text-center">{error}</p>
+                    </div>
                   )}
 
                   <button
                     type="submit"
-                    disabled={loading || !code}
+                    disabled={loading || !partyName || !password}
                     className="btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    {loading ? 'Looking up...' : 'Continue'}
+                    {loading ? 'Checking...' : 'Continue'}
                   </button>
                 </form>
 
                 <p className="text-gray-500 text-sm text-center mt-6">
-                  Can't find your code? <a href="/contact" className="text-burgundy-700 hover:underline">Contact us</a>
+                  Can't find your details? <a href="/contact" className="text-burgundy-700 hover:underline">Contact us</a>
                 </p>
               </motion.div>
             )}
 
             {/* Step 2: RSVP Form */}
-            {step === 'form' && guestData && (
+            {step === 'form' && partyData && (
               <motion.div
                 key="form"
                 initial={{ opacity: 0, y: 20 }}
@@ -241,7 +262,7 @@ export default function RSVP() {
               >
                 <div className="card mb-8">
                   <h2 className="font-display text-2xl text-burgundy-900 text-center mb-2">
-                    Welcome, {guestData.primary_guest_name}!
+                    Welcome, {partyData.party.name}!
                   </h2>
                   <p className="text-gray-600 text-center">
                     Please let us know who will be attending.
@@ -256,22 +277,22 @@ export default function RSVP() {
                     </h3>
 
                     <div className="space-y-4">
-                      {guestData.members.map((member) => (
+                      {partyData.guests.map((guest) => (
                         <label
-                          key={member.id}
+                          key={guest.id}
                           className="flex items-center gap-4 p-4 border border-burgundy-100 cursor-pointer hover:bg-burgundy-50 transition-colors"
                         >
                           <input
                             type="checkbox"
-                            checked={formData.attending[member.id] || false}
-                            onChange={() => toggleAttending(member.id)}
+                            checked={formData.attending[guest.id] || false}
+                            onChange={() => toggleAttending(guest.id)}
                             className="w-5 h-5 rounded border-burgundy-300 text-burgundy-900 focus:ring-burgundy-900"
                           />
                           <span className="flex-1">
                             <span className="font-medium text-gray-800">
-                              {member.isPlusOne ? 'Plus One' : member.name}
+                              {guest.isPlusOne ? 'Plus One' : guest.name}
                             </span>
-                            {member.isPlusOne && (
+                            {guest.isPlusOne && (
                               <span className="text-gray-500 text-sm ml-2">(Guest)</span>
                             )}
                           </span>
@@ -290,20 +311,20 @@ export default function RSVP() {
                         Menu options will be updated closer to the date. Please check back later.
                       </p>
 
-                      {guestData.members
-                        .filter(member => formData.attending[member.id])
-                        .map((member) => (
-                          <div key={member.id} className="mb-6 last:mb-0">
+                      {partyData.guests
+                        .filter(guest => formData.attending[guest.id])
+                        .map((guest) => (
+                          <div key={guest.id} className="mb-6 last:mb-0">
                             <label className="block text-sm font-medium text-gray-700 mb-2">
-                              {member.isPlusOne ? 'Plus One' : member.name}
+                              {guest.isPlusOne ? 'Plus One' : guest.name}
                             </label>
                             <select
-                              value={formData.meal_choices[member.id] || ''}
+                              value={formData.meal_choices[guest.id] || ''}
                               onChange={(e) => setFormData(prev => ({
                                 ...prev,
                                 meal_choices: {
                                   ...prev.meal_choices,
-                                  [member.id]: e.target.value,
+                                  [guest.id]: e.target.value,
                                 },
                               }))}
                               className="input-field"
@@ -327,21 +348,21 @@ export default function RSVP() {
                         Dietary Requirements
                       </h3>
 
-                      {guestData.members
-                        .filter(member => formData.attending[member.id])
-                        .map((member) => (
-                          <div key={member.id} className="mb-6 last:mb-0">
+                      {partyData.guests
+                        .filter(guest => formData.attending[guest.id])
+                        .map((guest) => (
+                          <div key={guest.id} className="mb-6 last:mb-0">
                             <label className="block text-sm font-medium text-gray-700 mb-2">
-                              {member.isPlusOne ? 'Plus One' : member.name}
+                              {guest.isPlusOne ? 'Plus One' : guest.name}
                             </label>
                             <input
                               type="text"
-                              value={formData.dietary_restrictions[member.id] || ''}
+                              value={formData.dietary_restrictions[guest.id] || ''}
                               onChange={(e) => setFormData(prev => ({
                                 ...prev,
                                 dietary_restrictions: {
                                   ...prev.dietary_restrictions,
-                                  [member.id]: e.target.value,
+                                  [guest.id]: e.target.value,
                                 },
                               }))}
                               placeholder="Any allergies or dietary requirements?"
@@ -376,54 +397,22 @@ export default function RSVP() {
                     </h3>
                     <p className="text-gray-500 text-sm mb-4">
                       We'd love to collect recipes from our guests! Please share a favourite 
-                      recipe that means something to you – either type it below or upload a file.
+                      recipe that means something to you.
                     </p>
 
-                    <div className="space-y-4">
-                      <textarea
-                        value={formData.recipe_text}
-                        onChange={(e) => setFormData(prev => ({ ...prev, recipe_text: e.target.value }))}
-                        placeholder="Type your recipe here..."
-                        rows={6}
-                        className="input-field resize-none"
-                      />
-
-                      <div className="text-center text-gray-400 text-sm">— or —</div>
-
-                      <div
-                        className="upload-area"
-                        onClick={() => fileInputRef.current?.click()}
-                      >
-                        <input
-                          ref={fileInputRef}
-                          type="file"
-                          onChange={handleFileChange}
-                          accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png"
-                          className="hidden"
-                        />
-                        {formData.recipe_file ? (
-                          <p className="text-burgundy-700">
-                            Selected: {formData.recipe_file.name}
-                          </p>
-                        ) : (
-                          <>
-                            <svg className="w-8 h-8 mx-auto text-burgundy-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                            </svg>
-                            <p className="text-gray-500">
-                              Click to upload a recipe file
-                            </p>
-                            <p className="text-gray-400 text-sm mt-1">
-                              PDF, Word, text, or image files accepted
-                            </p>
-                          </>
-                        )}
-                      </div>
-                    </div>
+                    <textarea
+                      value={formData.recipe_text}
+                      onChange={(e) => setFormData(prev => ({ ...prev, recipe_text: e.target.value }))}
+                      placeholder="Type your recipe here..."
+                      rows={6}
+                      className="input-field resize-none"
+                    />
                   </div>
 
                   {error && (
-                    <p className="text-red-600 text-center mb-4">{error}</p>
+                    <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded">
+                      <p className="text-red-600 text-center">{error}</p>
+                    </div>
                   )}
 
                   <button

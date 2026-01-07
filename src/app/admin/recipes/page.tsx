@@ -3,11 +3,9 @@
 import { useState, useEffect } from 'react';
 
 interface Recipe {
-  id: string;
-  guest_name: string;
-  recipe_text?: string;
-  recipe_file_url?: string;
-  recipe_file_name?: string;
+  id: number;
+  party_name: string;
+  recipe_text: string;
   submitted_at: string;
 }
 
@@ -32,11 +30,36 @@ export default function AdminRecipes() {
     }
   };
 
+  const exportRecipes = () => {
+    const content = recipes.map(recipe => 
+      `=== Recipe from ${recipe.party_name} ===\n` +
+      `Submitted: ${new Date(recipe.submitted_at).toLocaleDateString()}\n\n` +
+      `${recipe.recipe_text}\n\n`
+    ).join('\n---\n\n');
+
+    const blob = new Blob([content], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'wedding-recipes.txt';
+    a.click();
+  };
+
   return (
     <div>
       <div className="flex items-center justify-between mb-8">
         <h1 className="text-3xl font-display text-gray-900">Recipe Collection</h1>
-        <span className="text-gray-500">{recipes.length} recipes submitted</span>
+        <div className="flex items-center gap-4">
+          <span className="text-gray-500">{recipes.length} recipes submitted</span>
+          {recipes.length > 0 && (
+            <button
+              onClick={exportRecipes}
+              className="px-4 py-2 text-sm border border-gray-300 rounded hover:bg-gray-50 transition-colors"
+            >
+              Export All
+            </button>
+          )}
+        </div>
       </div>
 
       {loading ? (
@@ -56,25 +79,14 @@ export default function AdminRecipes() {
               onClick={() => setSelectedRecipe(recipe)}
             >
               <h3 className="text-lg font-display text-gray-900 mb-2">
-                Recipe from {recipe.guest_name}
+                {recipe.party_name}
               </h3>
               
-              {recipe.recipe_text && (
-                <p className="text-gray-600 text-sm line-clamp-3 mb-4">
-                  {recipe.recipe_text}
-                </p>
-              )}
+              <p className="text-gray-600 text-sm line-clamp-3 mb-4">
+                {recipe.recipe_text}
+              </p>
 
-              {recipe.recipe_file_name && (
-                <div className="flex items-center gap-2 text-burgundy-700 text-sm">
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
-                  </svg>
-                  {recipe.recipe_file_name}
-                </div>
-              )}
-
-              <p className="text-xs text-gray-400 mt-4">
+              <p className="text-xs text-gray-400">
                 {new Date(recipe.submitted_at).toLocaleDateString('en-GB', {
                   day: 'numeric',
                   month: 'short',
@@ -99,7 +111,7 @@ export default function AdminRecipes() {
             <div className="p-6 border-b">
               <div className="flex items-center justify-between">
                 <h2 className="text-2xl font-display text-gray-900">
-                  Recipe from {selectedRecipe.guest_name}
+                  Recipe from {selectedRecipe.party_name}
                 </h2>
                 <button
                   onClick={() => setSelectedRecipe(null)}
@@ -113,31 +125,9 @@ export default function AdminRecipes() {
             </div>
 
             <div className="p-6">
-              {selectedRecipe.recipe_text && (
-                <div className="mb-6">
-                  <h3 className="text-sm font-medium text-gray-500 mb-2">Recipe Text</h3>
-                  <div className="bg-gray-50 p-4 rounded whitespace-pre-wrap text-gray-700">
-                    {selectedRecipe.recipe_text}
-                  </div>
-                </div>
-              )}
-
-              {selectedRecipe.recipe_file_url && (
-                <div>
-                  <h3 className="text-sm font-medium text-gray-500 mb-2">Attached File</h3>
-                  <a
-                    href={selectedRecipe.recipe_file_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 px-4 py-2 bg-burgundy-900 text-white rounded hover:bg-burgundy-800 transition-colors"
-                  >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                    </svg>
-                    Download {selectedRecipe.recipe_file_name}
-                  </a>
-                </div>
-              )}
+              <div className="bg-gray-50 p-4 rounded whitespace-pre-wrap text-gray-700">
+                {selectedRecipe.recipe_text}
+              </div>
             </div>
           </div>
         </div>

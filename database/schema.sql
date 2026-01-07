@@ -1,52 +1,75 @@
 -- Wedding Website Database Schema for Supabase
 -- Run this in the Supabase SQL editor to set up your database
 
--- Enable UUID extension
+-- Enable UUID extension (still useful for some internal IDs)
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
--- Guests table
-CREATE TABLE guests (
-  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
-  code VARCHAR(8) UNIQUE NOT NULL,
-  first_name VARCHAR(100) NOT NULL,
-  last_name VARCHAR(100) NOT NULL,
-  email VARCHAR(255),
-  phone VARCHAR(50),
-  group_id UUID,
-  has_plus_one BOOLEAN DEFAULT FALSE,
+-- ============================================
+-- PARTIES TABLE
+-- Groups of guests who login together
+-- ============================================
+CREATE TABLE parties (
+  id SERIAL PRIMARY KEY,  -- Auto-incrementing: 1, 2, 3...
+  party_name VARCHAR(100) UNIQUE NOT NULL,  -- Used as login name
+  password VARCHAR(100) NOT NULL,  -- Password for RSVP access
   invited_to_ceremony BOOLEAN DEFAULT TRUE,
   invited_to_reception BOOLEAN DEFAULT TRUE,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- Guest members (for tracking individual people within a guest party)
-CREATE TABLE guest_members (
-  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
-  guest_id UUID REFERENCES guests(id) ON DELETE CASCADE,
-  name VARCHAR(200) NOT NULL,
+-- Create a function to format party ID as 001, 002, etc.
+CREATE OR REPLACE FUNCTION get_party_code(party_id INTEGER)
+RETURNS TEXT AS $$
+BEGIN
+  RETURN LPAD(party_id::TEXT, 3, '0');
+END;
+$$ LANGUAGE plpgsql;
+
+-- ============================================
+-- GUESTS TABLE
+-- Individual people within a party
+-- ============================================
+CREATE TABLE guests (
+  id SERIAL PRIMARY KEY,  -- Auto-incrementing: 1, 2, 3...
+  party_id INTEGER REFERENCES parties(id) ON DELETE CASCADE,
+  first_name VARCHAR(100) NOT NULL,
+  last_name VARCHAR(100) NOT NULL,
   is_plus_one BOOLEAN DEFAULT FALSE,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- RSVPs table
+-- Create a function to format guest ID as 001, 002, etc.
+CREATE OR REPLACE FUNCTION get_guest_code(guest_id INTEGER)
+RETURNS TEXT AS $$
+BEGIN
+  RETURN LPAD(guest_id::TEXT, 3, '0');
+END;
+$$ LANGUAGE plpgsql;
+
+-- ============================================
+-- RSVPS TABLE
+-- Responses from parties
+-- ============================================
 CREATE TABLE rsvps (
-  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
-  guest_id UUID REFERENCES guests(id) ON DELETE CASCADE UNIQUE,
-  attending JSONB DEFAULT '{}',
-  meal_choices JSONB DEFAULT '{}',
-  dietary_restrictions JSONB DEFAULT '{}',
+  id SERIAL PRIMARY KEY,
+  party_id INTEGER REFERENCES parties(id) ON DELETE CASCADE UNIQUE,
+  attending JSONB DEFAULT '{}',  -- { "guest_id": true/false, ... }
+  meal_choices JSONB DEFAULT '{}',  -- { "guest_id": "meal_option", ... }
+  dietary_restrictions JSONB DEFAULT '{}',  -- { "guest_id": "restrictions", ... }
   song_request TEXT,
   recipe_text TEXT,
-  recipe_file_url TEXT,
-  recipe_file_name VARCHAR(255),
   submitted_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- Contact messages table
+-- ============================================
+-- CONTACT MESSAGES TABLE
+-- Messages from the contact form
+-- ============================================
 CREATE TABLE contact_messages (
-  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+  id SERIAL PRIMARY KEY,
   name VARCHAR(200) NOT NULL,
   email VARCHAR(255) NOT NULL,
   message TEXT NOT NULL,
@@ -54,26 +77,28 @@ CREATE TABLE contact_messages (
   sent_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- Create indexes for better performance
-CREATE INDEX idx_guests_code ON guests(code);
-CREATE INDEX idx_rsvps_guest_id ON rsvps(guest_id);
-CREATE INDEX idx_guest_members_guest_id ON guest_members(guest_id);
+-- ============================================
+-- INDEXES
+-- ============================================
+CREATE INDEX idx_parties_party_name ON parties(party_name);
+CREATE INDEX idx_guests_party_id ON guests(party_id);
+CREATE INDEX idx_rsvps_party_id ON rsvps(party_id);
 
--- Enable Row Level Security (RLS)
+-- ============================================
+-- ROW LEVEL SECURITY (RLS)
+-- ============================================
+ALTER TABLE parties ENABLE ROW LEVEL SECURITY;
 ALTER TABLE guests ENABLE ROW LEVEL SECURITY;
-ALTER TABLE guest_members ENABLE ROW LEVEL SECURITY;
 ALTER TABLE rsvps ENABLE ROW LEVEL SECURITY;
 ALTER TABLE contact_messages ENABLE ROW LEVEL SECURITY;
 
--- Create policies for public access (adjust as needed)
--- Guests can look up their own info by code
-CREATE POLICY "Allow guest lookup by code" ON guests
+-- Policies for public access
+CREATE POLICY "Allow party lookup" ON parties
   FOR SELECT USING (true);
 
-CREATE POLICY "Allow guest members lookup" ON guest_members
+CREATE POLICY "Allow guests lookup" ON guests
   FOR SELECT USING (true);
 
--- Anyone can submit an RSVP
 CREATE POLICY "Allow RSVP select" ON rsvps
   FOR SELECT USING (true);
 
@@ -83,42 +108,88 @@ CREATE POLICY "Allow RSVP insert" ON rsvps
 CREATE POLICY "Allow RSVP update" ON rsvps
   FOR UPDATE USING (true);
 
--- Anyone can submit a contact message
 CREATE POLICY "Allow contact message insert" ON contact_messages
   FOR INSERT WITH CHECK (true);
 
 CREATE POLICY "Allow contact message select" ON contact_messages
   FOR SELECT USING (true);
 
--- For admin operations, you'll use the service role key
--- which bypasses RLS
+-- ============================================
+-- HELPFUL VIEWS
+-- ============================================
 
--- Create storage bucket for recipe files
-INSERT INTO storage.buckets (id, name, public)
-VALUES ('recipes', 'recipes', true)
-ON CONFLICT (id) DO NOTHING;
+-- View to see parties with their formatted codes
+CREATE VIEW parties_with_codes AS
+SELECT 
+  id,
+  get_party_code(id) AS party_code,
+  party_name,
+  password,
+  invited_to_ceremony,
+  invited_to_reception,
+  created_at
+FROM parties;
 
--- Allow public uploads to recipes bucket
-CREATE POLICY "Allow recipe uploads" ON storage.objects
-  FOR INSERT WITH CHECK (bucket_id = 'recipes');
+-- View to see guests with their formatted codes and party info
+CREATE VIEW guests_with_details AS
+SELECT 
+  g.id,
+  get_guest_code(g.id) AS guest_code,
+  g.first_name,
+  g.last_name,
+  g.first_name || ' ' || g.last_name AS full_name,
+  g.is_plus_one,
+  g.party_id,
+  get_party_code(p.id) AS party_code,
+  p.party_name
+FROM guests g
+JOIN parties p ON g.party_id = p.id;
 
-CREATE POLICY "Allow recipe downloads" ON storage.objects
-  FOR SELECT USING (bucket_id = 'recipes');
+-- View to see RSVP summary
+CREATE VIEW rsvp_summary AS
+SELECT 
+  r.id,
+  r.party_id,
+  get_party_code(p.id) AS party_code,
+  p.party_name,
+  r.attending,
+  r.meal_choices,
+  r.dietary_restrictions,
+  r.song_request,
+  r.recipe_text,
+  r.submitted_at
+FROM rsvps r
+JOIN parties p ON r.party_id = p.id;
 
--- Sample data for testing (optional)
--- Uncomment to add test guests
+-- ============================================
+-- SAMPLE DATA (Optional - uncomment to use)
+-- ============================================
 
 /*
-INSERT INTO guests (code, first_name, last_name, email, has_plus_one, invited_to_ceremony, invited_to_reception)
+-- Insert sample parties
+INSERT INTO parties (party_name, password, invited_to_ceremony, invited_to_reception)
 VALUES 
-  ('ABC123', 'John', 'Smith', 'john@example.com', true, true, true),
-  ('DEF456', 'Jane', 'Doe', 'jane@example.com', false, true, true),
-  ('GHI789', 'Bob', 'Wilson', 'bob@example.com', true, false, true);
+  ('The Smith Family', 'smith2026', true, true),
+  ('John & Jane Doe', 'doe2026', true, true),
+  ('Bob Wilson', 'wilson2026', false, true);
 
--- Add member entries for the test guests
-INSERT INTO guest_members (guest_id, name, is_plus_one)
-SELECT id, first_name || ' ' || last_name, false FROM guests;
+-- Insert sample guests
+-- Party 1: The Smith Family (2 adults + plus one)
+INSERT INTO guests (party_id, first_name, last_name, is_plus_one)
+VALUES 
+  (1, 'David', 'Smith', false),
+  (1, 'Sarah', 'Smith', false),
+  (1, 'Plus', 'One', true);
 
-INSERT INTO guest_members (guest_id, name, is_plus_one)
-SELECT id, 'Plus One', true FROM guests WHERE has_plus_one = true;
+-- Party 2: John & Jane Doe
+INSERT INTO guests (party_id, first_name, last_name, is_plus_one)
+VALUES 
+  (2, 'John', 'Doe', false),
+  (2, 'Jane', 'Doe', false);
+
+-- Party 3: Bob Wilson (solo + plus one)
+INSERT INTO guests (party_id, first_name, last_name, is_plus_one)
+VALUES 
+  (3, 'Bob', 'Wilson', false),
+  (3, 'Plus', 'One', true);
 */

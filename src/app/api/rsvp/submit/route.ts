@@ -1,106 +1,58 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
 
-export async function POST(request: NextRequest) {
+export async function GET() {
   try {
-    const formData = await request.formData();
-    
-    const guest_id = formData.get('guest_id') as string;
-    const attending = JSON.parse(formData.get('attending') as string);
-    const meal_choices = JSON.parse(formData.get('meal_choices') as string);
-    const dietary_restrictions = JSON.parse(formData.get('dietary_restrictions') as string);
-    const song_request = formData.get('song_request') as string;
-    const recipe_text = formData.get('recipe_text') as string;
-    const recipe_file = formData.get('recipe_file') as File | null;
-
-    if (!guest_id) {
-      return NextResponse.json({ error: 'Guest ID is required' }, { status: 400 });
-    }
-
-    // Verify guest exists
-    const { data: guest, error: guestError } = await supabase
-      .from('guests')
-      .select('id')
-      .eq('id', guest_id)
-      .single();
-
-    if (guestError || !guest) {
-      return NextResponse.json({ error: 'Guest not found' }, { status: 404 });
-    }
-
-    // Handle file upload if present
-    let recipe_file_url = null;
-    let recipe_file_name = null;
-
-    if (recipe_file && recipe_file.size > 0) {
-      const fileExt = recipe_file.name.split('.').pop();
-      const fileName = `${guest_id}-${Date.now()}.${fileExt}`;
-      
-      const { error: uploadError } = await supabase.storage
-        .from('recipes')
-        .upload(fileName, recipe_file);
-
-      if (uploadError) {
-        console.error('File upload error:', uploadError);
-        // Continue without file, don't fail the whole submission
-      } else {
-        const { data: publicUrl } = supabase.storage
-          .from('recipes')
-          .getPublicUrl(fileName);
-        
-        recipe_file_url = publicUrl.publicUrl;
-        recipe_file_name = recipe_file.name;
-      }
-    }
-
-    // Check if RSVP already exists
-    const { data: existingRsvp } = await supabase
+    const { data: rsvps, error } = await supabase
       .from('rsvps')
-      .select('id')
-      .eq('guest_id', guest_id)
-      .single();
+      .select(`
+        *,
+        parties (
+          id,
+          party_name
+        )
+      `)
+      .order('submitted_at', { ascending: false });
 
-    const rsvpData = {
-      guest_id,
-      attending,
-      meal_choices,
-      dietary_restrictions,
-      song_request: song_request || null,
-      recipe_text: recipe_text || null,
-      recipe_file_url,
-      recipe_file_name,
-      updated_at: new Date().toISOString(),
-    };
+    if (error) throw error;
 
-    if (existingRsvp) {
-      // Update existing RSVP
-      const { error: updateError } = await supabase
-        .from('rsvps')
-        .update(rsvpData)
-        .eq('id', existingRsvp.id);
+    // Get all guests to map IDs to names
+    const { data: guests } = await supabase
+      .from('guests')
+      .select('id, first_name, last_name, is_plus_one, party_id');
 
-      if (updateError) {
-        console.error('RSVP update error:', updateError);
-        return NextResponse.json({ error: 'Failed to update RSVP' }, { status: 500 });
-      }
-    } else {
-      // Create new RSVP
-      const { error: insertError } = await supabase
-        .from('rsvps')
-        .insert({
-          ...rsvpData,
-          submitted_at: new Date().toISOString(),
-        });
+    const guestMap = new Map(
+      guests?.map(g => [g.id, g]) || []
+    );
 
-      if (insertError) {
-        console.error('RSVP insert error:', insertError);
-        return NextResponse.json({ error: 'Failed to save RSVP' }, { status: 500 });
-      }
-    }
+    const formattedRsvps = rsvps?.map(rsvp => ({
+      id: rsvp.id,
+      party_id: rsvp.party_id,
+      party_code: rsvp.parties ? String(rsvp.parties.id).padStart(3, '0') : null,
+      party_name: rsvp.parties?.party_name || 'Unknown',
+      attending: rsvp.attending || {},
+      meal_choices: rsvp.meal_choices || {},
+      dietary_restrictions: rsvp.dietary_restrictions || {},
+      song_request: rsvp.song_request,
+      recipe_text: rsvp.recipe_text,
+      submitted_at: rsvp.submitted_at,
+      // Map guest IDs to names for display
+      guest_details: Object.keys(rsvp.attending || {}).map(guestId => {
+        const guest = guestMap.get(parseInt(guestId));
+        return {
+          id: guestId,
+          name: guest ? `${guest.first_name} ${guest.last_name}` : `Guest #${guestId}`,
+          is_plus_one: guest?.is_plus_one || false,
+          attending: rsvp.attending?.[guestId] || false,
+          meal_choice: rsvp.meal_choices?.[guestId] || null,
+          dietary_restriction: rsvp.dietary_restrictions?.[guestId] || null,
+        };
+      }),
+    })) || [];
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ rsvps: formattedRsvps });
   } catch (error) {
-    console.error('Error in RSVP submission:', error);
-    return NextResponse.json({ error: 'An error occurred' }, { status: 500 });
+    console.error('Error fetching RSVPs:', error);
+    return NextResponse.json({ rsvps: [] });
   }
 }

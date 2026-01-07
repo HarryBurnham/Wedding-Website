@@ -3,6 +3,11 @@ import { supabase } from '@/lib/supabase';
 
 export async function GET() {
   try {
+    // Get total parties
+    const { count: totalParties } = await supabase
+      .from('parties')
+      .select('*', { count: 'exact', head: true });
+
     // Get total guests
     const { count: totalGuests } = await supabase
       .from('guests')
@@ -16,43 +21,46 @@ export async function GET() {
     const totalResponses = rsvps?.length || 0;
     
     // Calculate attending count
-    let attending = 0;
-    let notAttending = 0;
+    let attendingGuests = 0;
+    let notAttendingGuests = 0;
     const mealCounts: { [key: string]: number } = {};
 
     rsvps?.forEach(rsvp => {
-      const isAttending = Object.values(rsvp.attending || {}).some(Boolean);
-      if (isAttending) {
-        attending++;
-        // Count meal choices
-        Object.values(rsvp.meal_choices || {}).forEach((choice: any) => {
-          if (choice) {
-            mealCounts[choice] = (mealCounts[choice] || 0) + 1;
+      // Count attending guests
+      Object.entries(rsvp.attending || {}).forEach(([guestId, isAttending]) => {
+        if (isAttending) {
+          attendingGuests++;
+          // Count meal choices
+          const mealChoice = rsvp.meal_choices?.[guestId];
+          if (mealChoice) {
+            mealCounts[mealChoice] = (mealCounts[mealChoice] || 0) + 1;
           }
-        });
-      } else {
-        notAttending++;
-      }
+        } else {
+          notAttendingGuests++;
+        }
+      });
     });
 
-    const pending = (totalGuests || 0) - totalResponses;
+    const pendingParties = (totalParties || 0) - totalResponses;
 
     return NextResponse.json({
+      totalParties: totalParties || 0,
       totalGuests: totalGuests || 0,
       totalResponses,
-      attending,
-      notAttending,
-      pending,
+      attendingGuests,
+      notAttendingGuests,
+      pendingParties,
       mealCounts,
     });
   } catch (error) {
     console.error('Error fetching stats:', error);
     return NextResponse.json({
+      totalParties: 0,
       totalGuests: 0,
       totalResponses: 0,
-      attending: 0,
-      notAttending: 0,
-      pending: 0,
+      attendingGuests: 0,
+      notAttendingGuests: 0,
+      pendingParties: 0,
       mealCounts: {},
     });
   }

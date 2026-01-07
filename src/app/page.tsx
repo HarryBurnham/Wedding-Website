@@ -5,12 +5,14 @@ import Link from 'next/link';
 import { WEDDING_CONFIG } from '@/lib/constants';
 
 export default function Home() {
-  const weddingDate = WEDDING_CONFIG.weddingDate.toLocaleDateString('en-GB', {
+  const weddingDate: string = WEDDING_CONFIG.weddingDate.toLocaleDateString('en-GB', {
     weekday: 'long',
     day: 'numeric',
     month: 'long',
     year: 'numeric',
   });
+
+  const { venue } = WEDDING_CONFIG;
 
   return (
     <main className="min-h-screen">
@@ -34,7 +36,6 @@ export default function Home() {
 
         {/* Content */}
         <div className="relative z-10 text-center px-6 py-32">
-          {/* Decorative element */}
           <div className="mb-8">
             <svg className="w-16 h-16 mx-auto text-burgundy-300" viewBox="0 0 100 100" fill="currentColor">
               <path d="M50 0C50 27.6 27.6 50 0 50c27.6 0 50 22.4 50 50 0-27.6 22.4-50 50-50C72.4 50 50 27.6 50 0z" />
@@ -95,35 +96,20 @@ export default function Home() {
       </section>
 
       {/* Venue / RSVP */}
-      <div className="grid md:grid-cols-3 gap-12">
-        {/* Ceremony / Reception */}
-        <div className="text-center">
-          <div className="w-16 h-16 mx-auto mb-6 flex items-center justify-center">
-            <svg className="w-12 h-12 text-burgundy-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-            </svg>
-          </div>
-          <h3 className="font-display text-2xl text-burgundy-900 mb-3">Ceremony & Reception</h3>
-          <p className="text-gray-600 mb-2">{WEDDING_CONFIG.venue.time || '15:00'}</p>
-          <p className="text-gray-500 text-sm">{WEDDING_CONFIG.venue.name}</p>
-        </div>
-
-  {/* RSVP */}
-  <div className="text-center">
-    <div className="w-16 h-16 mx-auto mb-6 flex items-center justify-center">
-      <svg className="w-12 h-12 text-burgundy-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-      </svg>
-    </div>
-    <h3 className="font-display text-2xl text-burgundy-900 mb-3">RSVP</h3>
-    <p className="text-gray-600 mb-2">
-      Please respond by {WEDDING_CONFIG.rsvpDeadline.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}
-    </p>
-    <Link href="/rsvp" className="text-burgundy-700 hover:text-burgundy-900 transition-colors underline">
-      Respond Now
-    </Link>
-  </div>
-</div>
+      <section className="py-24 bg-white">
+        <div className="max-w-6xl mx-auto px-6">
+          <div className="grid md:grid-cols-3 gap-12">
+            {/* Venue */}
+            <div className="text-center">
+              <div className="w-16 h-16 mx-auto mb-6 flex items-center justify-center">
+                <svg className="w-12 h-12 text-burgundy-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                </svg>
+              </div>
+              <h3 className="font-display text-2xl text-burgundy-900 mb-3">Ceremony & Reception</h3>
+              <p className="text-gray-600 mb-2">{venue.time || '15:00'}</p>
+              <p className="text-gray-500 text-sm">{venue.name}</p>
+            </div>
 
             {/* RSVP */}
             <div className="text-center">

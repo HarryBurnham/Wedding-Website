@@ -1,7 +1,7 @@
 export const WEDDING_CONFIG = {
   partner1: 'Harry Burnham',
   partner2: 'Adia Shane',
-  weddingDate: new Date('2026-10-10T14:00:00'),
+  weddingDate: new Date('2026-10-10T15:00:00'),
   
   // Contact
   contactEmail: 'your-email@example.com', // Update this
@@ -9,6 +9,7 @@ export const WEDDING_CONFIG = {
   venue: {
     name: 'Ceremony & Reception Venue',
     address: 'Melbourne Rd, Ashby-de-la-Zouch LE65 1RT',
+    time: '15:00',
     description:
       'The ceremony begins at 15:00 and lasts approximately 30 minutes, followed by drinks, wedding breakfast, and dancing at the same venue.',
     mapUrl: 'https://maps.app.goo.gl/kky72eZE5jJPgmQ69',

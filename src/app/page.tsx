@@ -94,33 +94,36 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Quick Info Section */}
-      <section className="py-24 bg-white">
-        <div className="max-w-6xl mx-auto px-6">
-          <div className="grid md:grid-cols-3 gap-12">
-            {/* Ceremony */}
-            <div className="text-center">
-              <div className="w-16 h-16 mx-auto mb-6 flex items-center justify-center">
-                <svg className="w-12 h-12 text-burgundy-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                </svg>
-              </div>
-              <h3 className="font-display text-2xl text-burgundy-900 mb-3">The Ceremony</h3>
-              <p className="text-gray-600 mb-2">{WEDDING_CONFIG.ceremony.time}</p>
-              <p className="text-gray-500 text-sm">{WEDDING_CONFIG.ceremony.name}</p>
-            </div>
+      {/* Venue / RSVP */}
+      <div className="grid md:grid-cols-3 gap-12">
+        {/* Ceremony / Reception */}
+        <div className="text-center">
+          <div className="w-16 h-16 mx-auto mb-6 flex items-center justify-center">
+            <svg className="w-12 h-12 text-burgundy-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+            </svg>
+          </div>
+          <h3 className="font-display text-2xl text-burgundy-900 mb-3">Ceremony & Reception</h3>
+          <p className="text-gray-600 mb-2">{WEDDING_CONFIG.venue.time || '15:00'}</p>
+          <p className="text-gray-500 text-sm">{WEDDING_CONFIG.venue.name}</p>
+        </div>
 
-            {/* Reception */}
-            <div className="text-center">
-              <div className="w-16 h-16 mx-auto mb-6 flex items-center justify-center">
-                <svg className="w-12 h-12 text-burgundy-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 15.5458C21 17.0922 19.6569 18.3458 18 18.3458H6C4.34315 18.3458 3 17.0922 3 15.5458M21 15.5458V11.7458C21 10.1994 19.6569 8.94584 18 8.94584H6C4.34315 8.94584 3 10.1994 3 11.7458V15.5458M21 15.5458H3M12 5.54584V8.94584M9 5.54584C9 4.16513 10.3431 3.04584 12 3.04584C13.6569 3.04584 15 4.16513 15 5.54584" />
-                </svg>
-              </div>
-              <h3 className="font-display text-2xl text-burgundy-900 mb-3">The Reception</h3>
-              <p className="text-gray-600 mb-2">{WEDDING_CONFIG.reception.time}</p>
-              <p className="text-gray-500 text-sm">{WEDDING_CONFIG.reception.name}</p>
-            </div>
+  {/* RSVP */}
+  <div className="text-center">
+    <div className="w-16 h-16 mx-auto mb-6 flex items-center justify-center">
+      <svg className="w-12 h-12 text-burgundy-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+      </svg>
+    </div>
+    <h3 className="font-display text-2xl text-burgundy-900 mb-3">RSVP</h3>
+    <p className="text-gray-600 mb-2">
+      Please respond by {WEDDING_CONFIG.rsvpDeadline.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}
+    </p>
+    <Link href="/rsvp" className="text-burgundy-700 hover:text-burgundy-900 transition-colors underline">
+      Respond Now
+    </Link>
+  </div>
+</div>
 
             {/* RSVP */}
             <div className="text-center">

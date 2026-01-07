@@ -22,7 +22,7 @@ export async function GET() {
 
     const recipes = rsvps?.map(rsvp => ({
       id: rsvp.id,
-      party_name: rsvp.parties?.party_name || 'Unknown',
+      party_name: rsvp.parties?.[0]?.party_name || 'Unknown',
       recipe_text: rsvp.recipe_text,
       submitted_at: rsvp.submitted_at,
     })) || [];

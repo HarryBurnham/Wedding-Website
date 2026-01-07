@@ -1,0 +1,190 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Lato:ital,wght@0,300;0,400;0,700;1,300;1,400&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --burgundy: #722040;
+  --burgundy-light: #8f1b42;
+  --burgundy-dark: #450a1f;
+  --cream: #fcf9f3;
+  --cream-dark: #f2e6d0;
+  --gold: #c9a962;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: 'Lato', sans-serif;
+  background-color: var(--cream);
+  color: #1f2937;
+  line-height: 1.6;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Playfair Display', serif;
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+/* Elegant underline effect */
+.elegant-underline {
+  position: relative;
+  display: inline-block;
+}
+
+.elegant-underline::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60px;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--burgundy), transparent);
+}
+
+/* Decorative divider */
+.divider {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin: 2rem 0;
+}
+
+.divider::before,
+.divider::after {
+  content: '';
+  height: 1px;
+  width: 80px;
+  background: linear-gradient(90deg, transparent, var(--burgundy), transparent);
+}
+
+/* Button styles */
+.btn-primary {
+  @apply inline-block px-8 py-3 bg-burgundy-900 text-white font-sans tracking-wide transition-all duration-300;
+  @apply hover:bg-burgundy-800 hover:shadow-lg;
+}
+
+.btn-secondary {
+  @apply inline-block px-8 py-3 border-2 border-burgundy-900 text-burgundy-900 font-sans tracking-wide transition-all duration-300;
+  @apply hover:bg-burgundy-900 hover:text-white;
+}
+
+/* Form inputs */
+.input-field {
+  @apply w-full px-4 py-3 bg-white border border-cream-300 focus:border-burgundy-900 focus:outline-none transition-colors duration-300;
+  @apply placeholder:text-gray-400;
+}
+
+.input-field:focus {
+  box-shadow: 0 0 0 3px rgba(114, 32, 64, 0.1);
+}
+
+/* Card styles */
+.card {
+  @apply bg-white p-8 shadow-sm;
+  border: 1px solid rgba(114, 32, 64, 0.1);
+}
+
+/* Checkbox custom style */
+input[type="checkbox"] {
+  @apply w-5 h-5 rounded border-burgundy-300 text-burgundy-900 focus:ring-burgundy-900 cursor-pointer;
+}
+
+/* Page transitions */
+.page-enter {
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+.page-enter-active {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+
+/* Countdown styling */
+.countdown-item {
+  @apply flex flex-col items-center;
+}
+
+.countdown-number {
+  @apply text-5xl md:text-7xl font-display text-burgundy-900;
+}
+
+.countdown-label {
+  @apply text-sm uppercase tracking-widest text-gray-500 mt-2;
+}
+
+/* Navigation */
+.nav-link {
+  @apply relative text-gray-700 hover:text-burgundy-900 transition-colors duration-300;
+}
+
+.nav-link::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 0;
+  height: 1px;
+  background-color: var(--burgundy);
+  transition: width 0.3s ease;
+}
+
+.nav-link:hover::after {
+  width: 100%;
+}
+
+/* Recipe upload area */
+.upload-area {
+  @apply border-2 border-dashed border-burgundy-200 p-8 text-center cursor-pointer transition-all duration-300;
+  @apply hover:border-burgundy-400 hover:bg-burgundy-50;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--cream);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--burgundy);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--burgundy-light);
+}
+
+/* Loading animation */
+@keyframes pulse-gentle {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
+
+.animate-pulse-gentle {
+  animation: pulse-gentle 2s ease-in-out infinite;
+}
+
+/* Selection color */
+::selection {
+  background-color: var(--burgundy);
+  color: white;
+}

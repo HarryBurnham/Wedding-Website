@@ -106,21 +106,23 @@ export default function TravelAccommodation() {
               <div className="bg-cream-100 p-4 rounded text-center">
                 <p className="text-xl font-mono text-burgundy-900">LE65 1RT</p>
               </div>
-                    <div className="bg-burgundy-900 text-white p-6 rounded-lg mt-4">
-                    <div className="flex gap-4">
-                      <div className="flex-shrink-0">
-                        <svg className="w-6 h-6 text-burgundy-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                      </div>
-                      <div>
-                        <p className="text-sm">
-                          If you use Waze, it will take you to the correct entrance straight to the house. 
-                          We can’t guarantee where a standard sat nav will take you.
-                        </p>
-                      </div>
-                    </div>
-                  </div>
+
+              {/* Waze Tip */}
+              <div className="bg-burgundy-900 text-white p-6 rounded-lg mt-4">
+              <div className="flex gap-4">
+                <div className="flex-shrink-0">
+                  <svg className="w-6 h-6 text-burgundy-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <div>
+                  <p className="text-sm">
+                    If you use Waze, it will take you to the correct entrance straight to the house. 
+                    We can’t guarantee where a standard sat nav will take you.
+                  </p>
+                </div>
+              </div>
+            </div>
             </div>
           </div>
         </div>

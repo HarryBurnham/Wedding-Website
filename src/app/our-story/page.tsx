@@ -30,9 +30,7 @@ export default function OurStory() {
             <div className="prose prose-lg max-w-none text-gray-600 leading-relaxed">
               <p className="mb-6">
                 {/* Add your story here */}
-                Our story began... [Add your story about how you met here. This section 
-                should describe the circumstances of your first meeting, initial impressions, 
-                and what drew you to each other.]
+                ???
               </p>
             </div>
           </div>
@@ -54,8 +52,7 @@ export default function OurStory() {
             <div className="prose prose-lg max-w-none text-gray-600 leading-relaxed">
               <p className="mb-6">
                 {/* Add your story here */}
-                Since that day... [Add details about your relationship journey, 
-                memorable moments, adventures together, and how your love has grown.]
+                ???
               </p>
             </div>
           </div>
@@ -77,8 +74,7 @@ export default function OurStory() {
             <div className="prose prose-lg max-w-none text-gray-600 leading-relaxed">
               <p className="mb-6">
                 {/* Add your story here */}
-                [Add the story of how the proposal happened. Where were you? 
-                What made it special? How did you feel in that moment?]
+                ???
               </p>
             </div>
           </div>
@@ -87,7 +83,7 @@ export default function OurStory() {
           <div className="mt-16 text-center">
             <div className="aspect-[4/3] max-w-2xl mx-auto bg-cream-200 flex items-center justify-center border border-burgundy-100">
               <p className="text-gray-400 text-sm uppercase tracking-widest">
-                Add your engagement photo here
+                Add  engagement photo here
               </p>
             </div>
           </div>

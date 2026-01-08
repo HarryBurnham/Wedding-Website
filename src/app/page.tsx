@@ -144,7 +144,7 @@ export default function Home() {
                 Directions & places to stay
               </p>
               <Link
-                href="/travel-accommodation"
+                href="/accommodation"
                 className="text-burgundy-700 hover:text-burgundy-900 transition-colors underline"
               >
                 View Info

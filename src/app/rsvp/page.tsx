@@ -355,7 +355,7 @@ export default function RSVP() {
                       id="partyName"
                       value={partyName}
                       onChange={(e) => setPartyName(e.target.value)}
-                      placeholder="e.g. The Smith Family"
+                      placeholder="e.g. Family Name - Initials"
                       className="input-field"
                       required
                     />

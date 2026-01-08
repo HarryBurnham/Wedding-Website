@@ -117,6 +117,13 @@ export default function Home() {
               </h3>
               <p className="text-gray-600 mb-2">{venue.time || '15:00'}</p>
               <p className="text-gray-500 text-sm">{venue.name}</p>
+
+              <Link
+              href="/venue"
+              className="inline-block mt-3 text-sm text-burgundy-700 hover:text-burgundy-900 transition-colors underline"
+              >
+                View venue & schedule
+              </Link>
             </div>
 
             {/* Travel & Accommodation */}

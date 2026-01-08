@@ -14,13 +14,13 @@ export async function GET() {
     // Fetch all parties to map names
     const { data: parties, error: partiesError } = await supabase
       .from('parties')
-      .select('party_id, party_name');
+      .select('id, party_name');
 
     if (partiesError) throw partiesError;
 
     // Create a map of party_id to party_name
     const partyMap = new Map(
-      parties?.map(p => [p.party_id, p.party_name]) || []
+      parties?.map(p => [p.id, p.party_name]) || []
     );
 
     // Format the response

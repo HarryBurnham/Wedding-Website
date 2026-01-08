@@ -37,69 +37,68 @@ export default function AdminRecipes() {
 
   // Export recipes to Word (recipes only, no songs)
   const exportRecipesToWord = () => {
-    if (!recipes.length) return;
+  if (!recipes.length) return;
 
-    const doc = new Document();
-
-    recipes.forEach(recipe => {
-      doc.addSection({
-        children: [
+  // Create the document with sections for each recipe
+  const doc = new Document({
+    sections: recipes.map(recipe => ({
+      children: [
+        new Paragraph({
+          children: [
+            new TextRun({
+              text: `Guest: ${recipe.partyName}`,
+              bold: true,
+              size: 28,
+            }),
+          ],
+        }),
+        recipe.recipeTitle &&
           new Paragraph({
             children: [
               new TextRun({
-                text: `Guest: ${recipe.partyName}`,
-                bold: true,
-                size: 28,
+                text: `Recipe: ${recipe.recipeTitle}`,
+                italics: true,
+                size: 24,
               }),
             ],
           }),
-          recipe.recipeTitle &&
-            new Paragraph({
-              children: [
-                new TextRun({
-                  text: `Recipe: ${recipe.recipeTitle}`,
-                  italics: true,
-                  size: 24,
-                }),
-              ],
-            }),
-          recipe.recipeText &&
-            new Paragraph({
-              children: [
-                new TextRun({
-                  text: recipe.recipeText,
-                  size: 22,
-                }),
-              ],
-            }),
-          new Paragraph({ text: '' }), // spacing between recipes
-        ],
-      });
-    });
+        recipe.recipeText &&
+          new Paragraph({
+            children: [
+              new TextRun({
+                text: recipe.recipeText,
+                size: 22,
+              }),
+            ],
+          }),
+        new Paragraph({ text: '' }), // spacing between recipes
+      ].filter((p): p is Paragraph => !!p),
+    })),
+  });
 
-    Packer.toBlob(doc).then(blob => saveAs(blob, 'recipes.docx'));
-  };
+  Packer.toBlob(doc).then(blob => saveAs(blob, 'recipes.docx'));
+};
 
-  // Export song requests to CSV
-  const exportSongRequestsToCsv = () => {
-    if (!recipes.length) return;
+// Export song requests to CSV
+const exportSongRequestsToCsv = () => {
+  if (!recipes.length) return;
 
-    const rows = [['Guest', 'Song Request']];
+  const rows = [['Guest', 'Song Request']];
 
-    recipes.forEach(recipe => {
-      if (recipe.songRequest) {
-        rows.push([recipe.partyName, recipe.songRequest]);
-      }
-    });
+  recipes.forEach(recipe => {
+    if (recipe.songRequest) {
+      rows.push([recipe.partyName, recipe.songRequest]);
+    }
+  });
 
-    const csv = rows.map(row => row.map(cell => `"${cell}"`).join(',')).join('\n');
-    const blob = new Blob([csv], { type: 'text/csv' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'song-requests.csv';
-    a.click();
-  };
+  const csv = rows.map(row => row.map(cell => `"${cell}"`).join(',')).join('\n');
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'song-requests.csv';
+  a.click();
+};
 
   return (
     <div>

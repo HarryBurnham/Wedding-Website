@@ -13,7 +13,7 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 -- QUERY 2: Create parties table
 -- ============================================
 CREATE TABLE parties (
-  party_id SERIAL PRIMARY KEY,
+  id SERIAL PRIMARY KEY,
   party_name VARCHAR(100) UNIQUE NOT NULL,
   password VARCHAR(100) NOT NULL,
   invited_to_ceremony BOOLEAN DEFAULT TRUE,
@@ -60,7 +60,7 @@ CREATE TABLE guest_rsvps (
 -- ============================================
 CREATE TABLE party_extras (
   id SERIAL PRIMARY KEY,
-  party_id INTEGER REFERENCES parties(party_id) ON DELETE CASCADE UNIQUE,
+  party_id INTEGER REFERENCES parties(id) ON DELETE CASCADE UNIQUE,
   song_request TEXT,
   recipe_title VARCHAR(200),
   recipe_text TEXT,

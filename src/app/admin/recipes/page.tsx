@@ -35,76 +35,57 @@ export default function AdminRecipes() {
     }
   };
 
-  // Export recipes to Word (recipes only, no songs)
+  // Export recipes to Word
   const exportRecipesToWord = () => {
-  if (!recipes.length) return;
-
-  // Create the document with sections for each recipe
-  const doc = new Document({
-    sections: recipes.map(recipe => ({
-      children: [
-        new Paragraph({
-          children: [
-            new TextRun({
-              text: `Guest: ${recipe.partyName}`,
-              bold: true,
-              size: 28,
+    if (!recipes.length) return;
+    const doc = new Document({
+      sections: recipes.map(recipe => ({
+        children: [
+          new Paragraph({
+            children: [new TextRun({ text: `Guest: ${recipe.partyName}`, bold: true, size: 28 })],
+          }),
+          recipe.recipeTitle &&
+            new Paragraph({
+              children: [new TextRun({ text: `Recipe: ${recipe.recipeTitle}`, italics: true, size: 24 })],
             }),
-          ],
-        }),
-        recipe.recipeTitle &&
-          new Paragraph({
-            children: [
-              new TextRun({
-                text: `Recipe: ${recipe.recipeTitle}`,
-                italics: true,
-                size: 24,
-              }),
-            ],
-          }),
-        recipe.recipeText &&
-          new Paragraph({
-            children: [
-              new TextRun({
-                text: recipe.recipeText,
-                size: 22,
-              }),
-            ],
-          }),
-        new Paragraph({ text: '' }), // spacing between recipes
-      ].filter((p): p is Paragraph => !!p),
-    })),
-  });
+          recipe.recipeText &&
+            new Paragraph({
+              children: [new TextRun({ text: recipe.recipeText, size: 22 })],
+            }),
+          new Paragraph({ text: '' }),
+        ].filter((p): p is Paragraph => !!p),
+      })),
+    });
 
-  Packer.toBlob(doc).then(blob => saveAs(blob, 'recipes.docx'));
-};
+    Packer.toBlob(doc).then(blob => saveAs(blob, 'recipes.docx'));
+  };
 
-// Export song requests to CSV
-const exportSongRequestsToCsv = () => {
-  if (!recipes.length) return;
+  // Export song requests to CSV
+  const exportSongRequestsToCsv = () => {
+    if (!recipes.length) return;
 
-  const rows = [['Guest', 'Song Request']];
+    const rows = [['Guest', 'Song Request']];
+    recipes.forEach(recipe => {
+      if (recipe.songRequest) rows.push([recipe.partyName, recipe.songRequest]);
+    });
 
-  recipes.forEach(recipe => {
-    if (recipe.songRequest) {
-      rows.push([recipe.partyName, recipe.songRequest]);
-    }
-  });
+    const csv = rows.map(r => r.map(c => `"${c}"`).join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'song-requests.csv';
+    a.click();
+  };
 
-  const csv = rows.map(row => row.map(cell => `"${cell}"`).join(',')).join('\n');
-  const blob = new Blob([csv], { type: 'text/csv' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = 'song-requests.csv';
-  a.click();
-};
+  // Separate songs from recipes
+  const songs = recipes.filter(r => r.songRequest);
 
   return (
-    <div>
+    <div className="space-y-12">
       {/* Header with buttons */}
       <div className="flex items-center justify-between mb-8">
-        <h1 className="text-3xl font-display text-gray-900">Recipe Collection</h1>
+        <h1 className="text-3xl font-display text-gray-900">Recipe & Song Collection</h1>
         <div className="flex items-center gap-4">
           <span className="text-gray-500">{recipes.length} recipes submitted</span>
           {recipes.length > 0 && (
@@ -134,35 +115,62 @@ const exportSongRequestsToCsv = () => {
           No recipes submitted yet.
         </div>
       ) : (
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {recipes.map(recipe => (
-            <div
-              key={recipe.id}
-              className="bg-white p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow cursor-pointer"
-              onClick={() => setSelectedRecipe(recipe)}
-            >
-              <h3 className="text-lg font-display text-burgundy-900 mb-1">
-                {recipe.recipeTitle || 'Untitled Recipe'}
-              </h3>
-              <p className="text-sm text-gray-500 mb-3">From: {recipe.partyName}</p>
-              <p className="text-gray-600 text-sm line-clamp-3">{recipe.recipeText}</p>
-              {recipe.songRequest && (
-                <p className="text-xs text-gray-400 mt-2 italic">Song Request: {recipe.songRequest}</p>
-              )}
-              <p className="text-xs text-gray-400 mt-4">
-                {new Date(recipe.submittedAt).toLocaleDateString('en-GB', {
-                  day: 'numeric', month: 'short', year: 'numeric'
-                })}
-              </p>
+        <>
+          {/* Recipes Grid */}
+          <div>
+            <h2 className="text-2xl font-display text-gray-900 mb-4">Recipes</h2>
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {recipes.map(recipe => (
+                <div
+                  key={recipe.id}
+                  className="bg-white p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow cursor-pointer"
+                  onClick={() => setSelectedRecipe(recipe)}
+                >
+                  <h3 className="text-lg font-display text-burgundy-900 mb-1">
+                    {recipe.recipeTitle || 'Untitled Recipe'}
+                  </h3>
+                  <p className="text-sm text-gray-500 mb-3">From: {recipe.partyName}</p>
+                  <p className="text-gray-600 text-sm line-clamp-3">{recipe.recipeText}</p>
+                  {recipe.songRequest && (
+                    <p className="text-xs text-gray-400 mt-2 italic">Song Request: {recipe.songRequest}</p>
+                  )}
+                  <p className="text-xs text-gray-400 mt-4">
+                    {new Date(recipe.submittedAt).toLocaleDateString('en-GB', {
+                      day: 'numeric', month: 'short', year: 'numeric',
+                    })}
+                  </p>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
+          </div>
+
+          {/* Songs List */}
+          {songs.length > 0 && (
+            <div>
+              <h2 className="text-2xl font-display text-gray-900 mb-4">Song Requests</h2>
+              <ul className="bg-white p-6 rounded-lg shadow-sm space-y-2">
+                {songs.map(song => (
+                  <li key={song.id} className="flex justify-between items-center p-2 border-b last:border-b-0">
+                    <span className="font-medium">{song.partyName}</span>
+                    <span className="italic text-gray-600">{song.songRequest}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </>
       )}
 
       {/* Recipe Modal */}
       {selectedRecipe && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-6 z-50" onClick={() => setSelectedRecipe(null)}>
-          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[80vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+        <div
+          className="fixed inset-0 bg-black/50 flex items-center justify-center p-6 z-50"
+          onClick={() => setSelectedRecipe(null)}
+        >
+          <div
+            className="bg-white rounded-lg max-w-2xl w-full max-h-[80vh] overflow-y-auto"
+            onClick={e => e.stopPropagation()}
+          >
             <div className="p-6 border-b flex items-center justify-between">
               <div>
                 <h2 className="text-2xl font-display text-gray-900">{selectedRecipe.recipeTitle || 'Untitled Recipe'}</h2>

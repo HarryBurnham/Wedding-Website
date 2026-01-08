@@ -3,67 +3,62 @@ import { supabase } from '@/lib/supabase';
 
 export async function GET() {
   try {
-    const { data: guests, error } = await supabase
-      .from('guests')
+    // Fetch parties with embedded guests, RSVPs, and party_extras
+    const { data: partiesData, error } = await supabase
+      .from('parties')
       .select(`
         *,
-        parties (
-          id,
-          party_name,
-          invited_to_ceremony,
-          invited_to_reception
+        guests (
+          *,
+          guest_rsvps (*)
         ),
-        guest_rsvps (*),
         party_extras (*)
       `)
-      .order('party_id', { ascending: true })
-      .order('is_plus_one', { ascending: true })
       .order('id', { ascending: true });
 
     if (error) throw error;
 
-    // Group guests by party
-    const partiesMap: { [key: number]: any } = {};
+    // Map the data into the structure your frontend expects
+    const parties = partiesData?.map((party: any) => {
+      const extras = party.party_extras?.[0];
 
-    guests?.forEach(guest => {
-      const partyId = guest.party_id;
-      const extras = guest.party_extras?.[0];
-      if (!partiesMap[partyId]) {
-        partiesMap[partyId] = {
-          partyId,
-          partyName: guest.parties?.party_name || 'Unknown',
-          invitedToCeremony: guest.parties?.invited_to_ceremony || false,
-          invitedToReception: guest.parties?.invited_to_reception || false,
-          invitationType: guest.parties?.invited_to_ceremony ? 'All Day' : 'Evening Only',
-          songRequest: extras?.song_request || '',       
-          recipeTitle: extras?.reciepe_title || '',      
-          recipeText: extras?.reciepe_text || '',
-          guests: [],
-        };
-      }
-
-      const rsvp = guest.guest_rsvps?.[0];
-
-      partiesMap[partyId].guests.push({
-        id: guest.id,
-        firstName: guest.first_name,
-        lastName: guest.last_name,
-        isPlusOne: guest.is_plus_one,
-        canBringPlusOne: guest.can_bring_plus_one,
-        plusOneFor: guest.plus_one_for,
-        attending: rsvp?.attending ?? null,
-        mealChoice: rsvp?.meal_choice || '',
-        dietaryRequirements: rsvp?.dietary_requirements || '',
-        plusOneFirstName: rsvp?.plus_one_first_name || '',
-        plusOneLastName: rsvp?.plus_one_last_name || '',
+      // Sort guests: main guests first, plus-ones last
+      const sortedGuests = (party.guests || []).sort((a: any, b: any) => {
+        if (a.is_plus_one === b.is_plus_one) return a.id - b.id;
+        return a.is_plus_one ? 1 : -1;
       });
-    });
 
-    const parties = Object.values(partiesMap);
+      return {
+        partyId: party.id,
+        partyName: party.party_name,
+        invitedToCeremony: party.invited_to_ceremony,
+        invitedToReception: party.invited_to_reception,
+        invitationType: party.invited_to_ceremony ? 'All Day' : 'Evening Only',
+        songRequest: extras?.song_request || '',
+        recipeTitle: extras?.recipe_title || '',
+        recipeText: extras?.recipe_text || '',
+        guests: sortedGuests.map((guest: any) => {
+          const rsvp = guest.guest_rsvps?.[0];
+          return {
+            id: guest.id,
+            firstName: guest.first_name,
+            lastName: guest.last_name,
+            isPlusOne: guest.is_plus_one,
+            canBringPlusOne: guest.can_bring_plus_one,
+            plusOneFor: guest.plus_one_for,
+            attending: rsvp?.attending ?? null,
+            mealChoice: rsvp?.meal_choice || '',
+            dietaryRequirements: rsvp?.dietary_requirements || '',
+            plusOneFirstName: rsvp?.plus_one_first_name || '',
+            plusOneLastName: rsvp?.plus_one_last_name || '',
+          };
+        }),
+      };
+    }) || [];
 
     return NextResponse.json({ parties });
   } catch (error) {
-    console.error('Error fetching guests:', error);
+    console.error('Error fetching parties:', error);
     return NextResponse.json({ parties: [] });
   }
 }

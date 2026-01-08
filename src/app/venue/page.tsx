@@ -43,7 +43,7 @@ export default function Venue() {
           <VenuePhotos photos={venue.photos} />
 
           {/* Map */}
-          <div className="mt-8 aspect-video bg-cream-100 flex items-center justify-center border border-burgundy-100">
+          <div className="mt-8 aspect-[3/2] bg-cream-100 flex items-center justify-center border border-burgundy-100">
             {venue.mapUrl ? (
               <iframe
                 src={venue.mapUrl}

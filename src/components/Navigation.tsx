@@ -14,7 +14,7 @@ export default function Navigation() {
         <div className="flex items-center justify-between h-16 md:h-20">
           {/* Logo */}
           <Link href="/" className="font-display text-xl md:text-2xl text-burgundy-900">
-            H & <span className="text-burgundy-700">A</span>
+            H <span className="text-burgundy-500">&</span> <span className="text-burgundy-700">A</span>
           </Link>
 
           {/* Desktop Navigation */}

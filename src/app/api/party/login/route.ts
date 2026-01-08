@@ -41,6 +41,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Failed to load guest details' }, { status: 500 });
     }
 
+    // Safely handle empty guest list
+    if (!guests || guests.length === 0) {
+      return NextResponse.json({ error: 'No guests found for this party' }, { status: 404 });
+    }
+
     // Get existing RSVPs for these guests
     const guestIds = guests?.map(g => g.id) || [];
     const { data: existingRsvps } = await supabase

@@ -3,27 +3,35 @@ import { supabase } from '@/lib/supabase';
 
 export async function GET() {
   try {
-    const { data: recipes, error } = await supabase
+    // Fetch party_extras
+    const { data: extras, error: extrasError } = await supabase
       .from('party_extras')
-      .select(`
-        *,
-        parties (
-          party_id,
-          party_name
-        )
-      `)
+      .select('*')
       .order('submitted_at', { ascending: false });
 
-    if (error) throw error;
+    if (extrasError) throw extrasError;
 
-    const formattedRecipes = recipes?.map(recipe => ({
-      id: recipe.id,
-      partyId: recipe.party_id,
-      partyName: recipe.parties?.party_name || 'Unknown',
-      recipeTitle: recipe.recipe_title,
-      recipeText: recipe.recipe_text,
-      songRequest: recipe.song_request,
-      submittedAt: recipe.submitted_at,
+    // Fetch all parties to map names
+    const { data: parties, error: partiesError } = await supabase
+      .from('parties')
+      .select('party_id, party_name');
+
+    if (partiesError) throw partiesError;
+
+    // Create a map of party_id to party_name
+    const partyMap = new Map(
+      parties?.map(p => [p.party_id, p.party_name]) || []
+    );
+
+    // Format the response
+    const formattedRecipes = extras?.map(extra => ({
+      id: extra.id,
+      partyId: extra.party_id,
+      partyName: partyMap.get(extra.party_id) || 'Unknown',
+      recipeTitle: extra.recipe_title,
+      recipeText: extra.recipe_text,
+      songRequest: extra.song_request,
+      submittedAt: extra.submitted_at,
     })) || [];
 
     return NextResponse.json({ recipes: formattedRecipes });
@@ -32,4 +40,3 @@ export async function GET() {
     return NextResponse.json({ recipes: [] });
   }
 }
-

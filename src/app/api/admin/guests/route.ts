@@ -13,9 +13,10 @@ export async function GET() {
           invited_to_ceremony,
           invited_to_reception
         ),
-        guest_rsvps (*)
+        guest_rsvps (*),
+        party_extras (*)
       `)
-      .order('party_id', { ascending: true, foreignTable: 'guests' })
+      .order('party_id', { ascending: true })
       .order('is_plus_one', { ascending: true })
       .order('id', { ascending: true });
 
@@ -26,6 +27,7 @@ export async function GET() {
 
     guests?.forEach(guest => {
       const partyId = guest.party_id;
+      const extras = guest.party_extras?.[0];
       if (!partiesMap[partyId]) {
         partiesMap[partyId] = {
           partyId,
@@ -33,6 +35,9 @@ export async function GET() {
           invitedToCeremony: guest.parties?.invited_to_ceremony || false,
           invitedToReception: guest.parties?.invited_to_reception || false,
           invitationType: guest.parties?.invited_to_ceremony ? 'All Day' : 'Evening Only',
+          songRequest: extras?.song_request || '',       
+          recipeTitle: extras?.reciepe_title || '',      
+          recipeText: extras?.reciepe_text || '',
           guests: [],
         };
       }

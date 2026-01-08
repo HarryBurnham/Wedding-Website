@@ -14,7 +14,7 @@ export async function GET() {
         ),
         party_extras (*)
       `)
-      .order('party_id', { ascending: true });
+      .order('id', { ascending: true });
 
     if (error) throw error;
 
@@ -54,7 +54,7 @@ export async function GET() {
       const notAttendingCount = guestDetails.filter((g: any) => g.attending === false).length;
 
       return {
-        partyId: party.party_id,
+        partyId: party.id,
         partyName: party.party_name,
         invitationType: party.invited_to_ceremony ? 'All Day' : 'Evening Only',
         invitedToCeremony: party.invited_to_ceremony,

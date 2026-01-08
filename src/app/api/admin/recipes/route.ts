@@ -12,8 +12,6 @@ export async function GET() {
           party_name
         )
       `)
-      .not('recipe_text', 'is', null)
-      .neq('recipe_text', '')
       .order('submitted_at', { ascending: false });
 
     if (error) throw error;

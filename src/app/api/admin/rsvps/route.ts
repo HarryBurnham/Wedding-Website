@@ -3,52 +3,71 @@ import { supabase } from '@/lib/supabase';
 
 export async function GET() {
   try {
-    const { data: rsvps, error } = await supabase
-      .from('rsvps')
+    // Get all parties with their guests and RSVPs
+    const { data: parties, error } = await supabase
+      .from('parties')
       .select(`
         *,
-        parties (
-          id,
-          party_name
-        )
+        guests (
+          *,
+          guest_rsvps (*)
+        ),
+        party_extras (*)
       `)
-      .order('submitted_at', { ascending: false });
+      .order('party_id', { ascending: true });
 
     if (error) throw error;
 
-    // Get all guests to map IDs to names
-    const { data: guests } = await supabase
-      .from('guests')
-      .select('id, first_name, last_name, is_plus_one, party_id');
+    const formattedRsvps = parties?.map(party => {
+      const guests = party.guests || [];
+      const extras = party.party_extras?.[0];
 
-    const guestMap = new Map(
-      guests?.map(g => [g.id, g]) || []
-    );
+      // Check if any guest has responded
+      const hasResponded = guests.some((g: any) => g.guest_rsvps?.length > 0);
 
-    const formattedRsvps = rsvps?.map(rsvp => ({
-      id: rsvp.id,
-      party_id: rsvp.party_id,
-      party_code: rsvp.parties ? String(rsvp.parties.id).padStart(3, '0') : null,
-      party_name: rsvp.parties?.party_name || 'Unknown',
-      attending: rsvp.attending || {},
-      meal_choices: rsvp.meal_choices || {},
-      dietary_restrictions: rsvp.dietary_restrictions || {},
-      song_request: rsvp.song_request,
-      recipe_text: rsvp.recipe_text,
-      submitted_at: rsvp.submitted_at,
-      // Map guest IDs to names for display
-      guest_details: Object.keys(rsvp.attending || {}).map(guestId => {
-        const guest = guestMap.get(parseInt(guestId));
+      // Format guest details
+      const guestDetails = guests.map((guest: any) => {
+        const rsvp = guest.guest_rsvps?.[0];
         return {
-          id: guestId,
-          name: guest ? `${guest.first_name} ${guest.last_name}` : `Guest #${guestId}`,
-          is_plus_one: guest?.is_plus_one || false,
-          attending: rsvp.attending?.[guestId] || false,
-          meal_choice: rsvp.meal_choices?.[guestId] || null,
-          dietary_restriction: rsvp.dietary_restrictions?.[guestId] || null,
+          id: guest.id,
+          firstName: guest.first_name,
+          lastName: guest.last_name,
+          isPlusOne: guest.is_plus_one,
+          canBringPlusOne: guest.can_bring_plus_one,
+          plusOneFor: guest.plus_one_for,
+          // RSVP data
+          attending: rsvp?.attending ?? null,
+          mealChoice: rsvp?.meal_choice || null,
+          dietaryRequirements: rsvp?.dietary_requirements || null,
+          plusOneFirstName: rsvp?.plus_one_first_name || null,
+          plusOneLastName: rsvp?.plus_one_last_name || null,
+          // Display name
+          displayName: guest.is_plus_one && rsvp?.plus_one_first_name
+            ? `${rsvp.plus_one_first_name} ${rsvp.plus_one_last_name || ''}`.trim()
+            : `${guest.first_name} ${guest.last_name}`,
+          submittedAt: rsvp?.submitted_at || null,
         };
-      }),
-    })) || [];
+      });
+
+      // Count attending
+      const attendingCount = guestDetails.filter((g: any) => g.attending === true).length;
+      const notAttendingCount = guestDetails.filter((g: any) => g.attending === false).length;
+
+      return {
+        partyId: party.party_id,
+        partyName: party.party_name,
+        invitationType: party.invited_to_ceremony ? 'All Day' : 'Evening Only',
+        invitedToCeremony: party.invited_to_ceremony,
+        invitedToReception: party.invited_to_reception,
+        hasResponded,
+        attendingCount,
+        notAttendingCount,
+        guests: guestDetails,
+        songRequest: extras?.song_request || null,
+        recipeTitle: extras?.recipe_title || null,
+        recipeText: extras?.recipe_text || null,
+      };
+    }) || [];
 
     return NextResponse.json({ rsvps: formattedRsvps });
   } catch (error) {

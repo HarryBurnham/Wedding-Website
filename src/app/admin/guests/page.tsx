@@ -104,7 +104,6 @@ export default function AdminGuests() {
       party.guests.forEach(guest => {
         rows.push([
           party.partyName,
-          party.password,
           party.invitationType,
           `${guest.firstName} ${guest.lastName}`,
           guest.canBringPlusOne ? 'Yes' : 'No',

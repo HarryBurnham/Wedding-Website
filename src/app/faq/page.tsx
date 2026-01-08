@@ -84,7 +84,7 @@ export default function FAQ() {
         <div className="max-w-2xl mx-auto px-6">
           <div className="space-y-4">
             {faqs.map((faq, index) => (
-              <div key={index} className="border-2 border-burgundy-200 bg-white">
+              <div key={index} className="border-2 border-burgundy-900 bg-white">
                 {/* Question Button */}
                 <button
                   onClick={() => toggleFAQ(index)}

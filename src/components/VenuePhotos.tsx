@@ -22,7 +22,7 @@ export default function VenuePhotos({ photos }: VenuePhotosProps) {
   if (!photos || photos.length === 0) return null;
 
   return (
-    <div className="w-full h-96 relative overflow-hidden rounded-xl shadow-lg bg-cream-100">
+    <div className="w-full max-w-4xl mx-auto relative overflow-hidden rounded-xl shadow-lg aspect-video bg-white">
       {photos.map((photo, index) => (
         <img
           key={index}

@@ -15,7 +15,7 @@ export async function GET() {
         ),
         guest_rsvps (*)
       `)
-      .order('party_id', { ascending: true })
+      .order('party_id', { ascending: true, foreignTable: 'guests' })
       .order('is_plus_one', { ascending: true })
       .order('id', { ascending: true });
 

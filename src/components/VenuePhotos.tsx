@@ -22,13 +22,13 @@ export default function VenuePhotos({ photos }: VenuePhotosProps) {
   if (!photos || photos.length === 0) return null;
 
   return (
-    <div className="w-full h-96 relative overflow-hidden rounded-xl shadow-lg">
+    <div className="w-full h-96 relative overflow-hidden rounded-xl shadow-lg bg-cream-100">
       {photos.map((photo, index) => (
         <img
           key={index}
           src={photo}
           alt={`Venue photo ${index + 1}`}
-          className={`absolute top-0 left-0 w-full h-full object-cover transition-opacity duration-700 ${
+          className={`absolute top-0 left-0 w-full h-full object-contain transition-opacity duration-700 ${
             index === currentIndex ? 'opacity-100' : 'opacity-0'
           }`}
         />

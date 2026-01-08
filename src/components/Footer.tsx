@@ -15,7 +15,7 @@ export default function Footer() {
           {/* Names & Date */}
           <div>
             <h3 className="font-display text-3xl mb-4">
-              {WEDDING_CONFIG.partner1} <span className="text-burgundy-300">&</span> {WEDDING_CONFIG.partner2 || '______'}
+              {WEDDING_CONFIG.partner1} <span className="text-cream-100">&</span> {WEDDING_CONFIG.partner2 || '______'}
             </h3>
             <p className="text-cream-300">{weddingDate}</p>
           </div>

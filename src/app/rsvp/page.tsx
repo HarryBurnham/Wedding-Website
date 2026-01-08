@@ -8,55 +8,48 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 interface Guest {
   id: number;
-  code: string;
-  name: string;
   firstName: string;
   lastName: string;
   isPlusOne: boolean;
+  canBringPlusOne: boolean;
+  plusOneFor: number | null;
 }
 
 interface Party {
-  id: number;
-  code: string;
-  name: string;
-  invited_to_ceremony: boolean;
-  invited_to_reception: boolean;
+  partyId: number;
+  partyName: string;
+  invitedToCeremony: boolean;
+  invitedToReception: boolean;
 }
 
-interface PartyData {
-  party: Party;
-  guests: Guest[];
-  existing_rsvp?: {
-    attending: { [key: string]: boolean };
-    meal_choices: { [key: string]: string };
-    dietary_restrictions: { [key: string]: string };
-    song_request?: string;
-    recipe_text?: string;
-  };
+interface GuestRSVP {
+  attending: boolean | null;
+  mealChoice: string;
+  dietaryRequirements: string;
+  plusOneFirstName: string;
+  plusOneLastName: string;
 }
 
-interface RSVPFormData {
-  attending: { [key: string]: boolean };
-  meal_choices: { [key: string]: string };
-  dietary_restrictions: { [key: string]: string };
-  song_request: string;
-  recipe_text: string;
+interface PartyExtras {
+  songRequest: string;
+  recipeTitle: string;
+  recipeText: string;
 }
 
 export default function RSVP() {
-  const [step, setStep] = useState<'login' | 'form' | 'success'>('login');
+  const [step, setStep] = useState<'login' | 'attendance' | 'meals' | 'extras' | 'success'>('login');
   const [partyName, setPartyName] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [partyData, setPartyData] = useState<PartyData | null>(null);
-
-  const [formData, setFormData] = useState<RSVPFormData>({
-    attending: {},
-    meal_choices: {},
-    dietary_restrictions: {},
-    song_request: '',
-    recipe_text: '',
+  
+  const [party, setParty] = useState<Party | null>(null);
+  const [guests, setGuests] = useState<Guest[]>([]);
+  const [guestRSVPs, setGuestRSVPs] = useState<{ [guestId: number]: GuestRSVP }>({});
+  const [partyExtras, setPartyExtras] = useState<PartyExtras>({
+    songRequest: '',
+    recipeTitle: '',
+    recipeText: '',
   });
 
   const rsvpDeadline = WEDDING_CONFIG.rsvpDeadline.toLocaleDateString('en-GB', {
@@ -87,28 +80,33 @@ export default function RSVP() {
         throw new Error(data.error || 'Login failed');
       }
 
-      setPartyData(data);
+      setParty(data.party);
+      setGuests(data.guests);
 
-      // Initialize form data with existing RSVP if present
-      const initialAttending: { [key: string]: boolean } = {};
-      const initialMeals: { [key: string]: string } = {};
-      const initialDietary: { [key: string]: string } = {};
-
+      // Initialize RSVPs for each guest
+      const initialRSVPs: { [guestId: number]: GuestRSVP } = {};
       data.guests.forEach((guest: Guest) => {
-        initialAttending[guest.id] = data.existing_rsvp?.attending?.[guest.id] ?? false;
-        initialMeals[guest.id] = data.existing_rsvp?.meal_choices?.[guest.id] ?? '';
-        initialDietary[guest.id] = data.existing_rsvp?.dietary_restrictions?.[guest.id] ?? '';
+        const existingRsvp = data.existingRsvps?.[guest.id];
+        initialRSVPs[guest.id] = {
+          attending: existingRsvp?.attending ?? null,
+          mealChoice: existingRsvp?.mealChoice ?? '',
+          dietaryRequirements: existingRsvp?.dietaryRequirements ?? '',
+          plusOneFirstName: existingRsvp?.plusOneFirstName ?? '',
+          plusOneLastName: existingRsvp?.plusOneLastName ?? '',
+        };
       });
+      setGuestRSVPs(initialRSVPs);
 
-      setFormData({
-        attending: initialAttending,
-        meal_choices: initialMeals,
-        dietary_restrictions: initialDietary,
-        song_request: data.existing_rsvp?.song_request ?? '',
-        recipe_text: data.existing_rsvp?.recipe_text ?? '',
-      });
+      // Load existing party extras
+      if (data.partyExtras) {
+        setPartyExtras({
+          songRequest: data.partyExtras.songRequest ?? '',
+          recipeTitle: data.partyExtras.recipeTitle ?? '',
+          recipeText: data.partyExtras.recipeText ?? '',
+        });
+      }
 
-      setStep('form');
+      setStep('attendance');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
@@ -116,30 +114,151 @@ export default function RSVP() {
     }
   };
 
-  // Handle RSVP submission
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  // Update guest RSVP
+  const updateGuestRSVP = (guestId: number, field: keyof GuestRSVP, value: any) => {
+    setGuestRSVPs(prev => ({
+      ...prev,
+      [guestId]: {
+        ...prev[guestId],
+        [field]: value,
+      },
+    }));
+  };
+
+  // Get the main guest for a plus-one
+  const getMainGuestForPlusOne = (plusOneGuest: Guest): Guest | undefined => {
+    return guests.find(g => g.id === plusOneGuest.plusOneFor);
+  };
+
+  // Get the plus-one guest for a main guest
+  const getPlusOneForGuest = (mainGuestId: number): Guest | undefined => {
+    return guests.find(g => g.plusOneFor === mainGuestId);
+  };
+
+  // Get display name for a guest (uses plus-one name if provided)
+  const getDisplayName = (guest: Guest): string => {
+    if (guest.isPlusOne) {
+      const rsvp = guestRSVPs[guest.id];
+      if (rsvp?.plusOneFirstName) {
+        return `${rsvp.plusOneFirstName} ${rsvp.plusOneLastName || ''}`.trim();
+      }
+      const mainGuest = getMainGuestForPlusOne(guest);
+      return mainGuest ? `${mainGuest.firstName}'s Guest` : 'Guest';
+    }
+    return `${guest.firstName} ${guest.lastName}`;
+  };
+
+  // Get attending guests (for meals step)
+  const getAttendingGuests = (): Guest[] => {
+    return guests.filter(guest => {
+      const rsvp = guestRSVPs[guest.id];
+      if (!rsvp?.attending) return false;
+      
+      // For plus-ones, only show if the main guest is bringing them
+      if (guest.isPlusOne) {
+        const mainGuest = getMainGuestForPlusOne(guest);
+        if (mainGuest) {
+          return guestRSVPs[mainGuest.id]?.attending;
+        }
+      }
+      return true;
+    });
+  };
+
+  // Save attendance and move to meals
+  const handleAttendanceNext = async () => {
     setError('');
     setLoading(true);
 
     try {
-      const response = await fetch('/api/rsvp/submit', {
+      const response = await fetch('/api/rsvp/save-attendance', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          party_id: partyData!.party.id,
-          attending: formData.attending,
-          meal_choices: formData.meal_choices,
-          dietary_restrictions: formData.dietary_restrictions,
-          song_request: formData.song_request,
-          recipe_text: formData.recipe_text,
+          party_id: party!.partyId,
+          guest_rsvps: Object.entries(guestRSVPs).map(([guestId, rsvp]) => ({
+            guest_id: parseInt(guestId),
+            attending: rsvp.attending,
+            plus_one_first_name: rsvp.plusOneFirstName || null,
+            plus_one_last_name: rsvp.plusOneLastName || null,
+          })),
         }),
       });
 
-      const data = await response.json();
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Failed to save');
+      }
+
+      // If no one is attending, skip to extras
+      if (getAttendingGuests().length === 0) {
+        setStep('extras');
+      } else {
+        setStep('meals');
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An error occurred');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Save meals and move to extras
+  const handleMealsNext = async () => {
+    setError('');
+    setLoading(true);
+
+    try {
+      const response = await fetch('/api/rsvp/save-meals', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          guest_rsvps: Object.entries(guestRSVPs)
+            .filter(([guestId]) => {
+              const guest = guests.find(g => g.id === parseInt(guestId));
+              return guest && guestRSVPs[parseInt(guestId)]?.attending;
+            })
+            .map(([guestId, rsvp]) => ({
+              guest_id: parseInt(guestId),
+              meal_choice: rsvp.mealChoice,
+              dietary_requirements: rsvp.dietaryRequirements,
+            })),
+        }),
+      });
 
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to submit RSVP');
+        const data = await response.json();
+        throw new Error(data.error || 'Failed to save');
+      }
+
+      setStep('extras');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An error occurred');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Save extras and complete
+  const handleExtrasSubmit = async () => {
+    setError('');
+    setLoading(true);
+
+    try {
+      const response = await fetch('/api/rsvp/save-extras', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          party_id: party!.partyId,
+          song_request: partyExtras.songRequest,
+          recipe_title: partyExtras.recipeTitle,
+          recipe_text: partyExtras.recipeText,
+        }),
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Failed to save');
       }
 
       setStep('success');
@@ -150,14 +269,38 @@ export default function RSVP() {
     }
   };
 
-  const toggleAttending = (guestId: number) => {
-    setFormData(prev => ({
-      ...prev,
-      attending: {
-        ...prev.attending,
-        [guestId]: !prev.attending[guestId],
-      },
-    }));
+  // Progress indicator
+  const ProgressBar = () => {
+    const steps = ['Attendance', 'Meals', 'Extras'];
+    const currentIndex = step === 'attendance' ? 0 : step === 'meals' ? 1 : step === 'extras' ? 2 : 0;
+    
+    if (step === 'login' || step === 'success') return null;
+
+    return (
+      <div className="mb-8">
+        <div className="flex items-center justify-between max-w-md mx-auto">
+          {steps.map((s, i) => (
+            <div key={s} className="flex items-center">
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
+                i <= currentIndex ? 'bg-burgundy-900 text-white' : 'bg-gray-200 text-gray-500'
+              }`}>
+                {i + 1}
+              </div>
+              <span className={`ml-2 text-sm hidden sm:inline ${
+                i <= currentIndex ? 'text-burgundy-900' : 'text-gray-400'
+              }`}>
+                {s}
+              </span>
+              {i < steps.length - 1 && (
+                <div className={`w-12 sm:w-20 h-1 mx-2 ${
+                  i < currentIndex ? 'bg-burgundy-900' : 'bg-gray-200'
+                }`} />
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+    );
   };
 
   return (
@@ -182,6 +325,8 @@ export default function RSVP() {
       {/* RSVP Content */}
       <section className="py-16 bg-white">
         <div className="max-w-2xl mx-auto px-6">
+          <ProgressBar />
+
           <AnimatePresence mode="wait">
             {/* Step 1: Login */}
             {step === 'login' && (
@@ -196,7 +341,7 @@ export default function RSVP() {
                   Welcome
                 </h2>
                 <p className="text-gray-600 text-center mb-8">
-                  Please enter your party name and password to access your RSVP. 
+                  Please enter your party name and password to access your RSVP.
                   These details were included with your invitation.
                 </p>
 
@@ -252,81 +397,198 @@ export default function RSVP() {
               </motion.div>
             )}
 
-            {/* Step 2: RSVP Form */}
-            {step === 'form' && partyData && (
+            {/* Step 2: Attendance */}
+            {step === 'attendance' && party && (
               <motion.div
-                key="form"
+                key="attendance"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
               >
                 <div className="card mb-8">
                   <h2 className="font-display text-2xl text-burgundy-900 text-center mb-2">
-                    Welcome, {partyData.party.name}!
+                    Welcome, {party.partyName}!
                   </h2>
                   <p className="text-gray-600 text-center">
-                    Please let us know who will be attending.
+                    {party.invitedToCeremony 
+                      ? "You're invited to join us for the full day celebration."
+                      : "You're invited to join us for the evening reception."}
+                  </p>
+                  <div className="mt-4 text-center">
+                    <span className={`inline-block px-4 py-2 rounded-full text-sm font-medium ${
+                      party.invitedToCeremony 
+                        ? 'bg-green-100 text-green-700' 
+                        : 'bg-purple-100 text-purple-700'
+                    }`}>
+                      {party.invitedToCeremony ? '🌅 All Day Guest' : '🌙 Evening Guest'}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="card mb-8">
+                  <h3 className="font-display text-xl text-burgundy-900 mb-6">
+                    Who will be attending?
+                  </h3>
+
+                  <div className="space-y-6">
+                    {guests.filter(g => !g.isPlusOne).map((guest) => {
+                      const plusOne = getPlusOneForGuest(guest.id);
+                      const guestRsvp = guestRSVPs[guest.id];
+
+                      return (
+                        <div key={guest.id} className="border border-burgundy-100 rounded-lg p-4">
+                          {/* Main Guest */}
+                          <div className="flex items-center justify-between mb-4">
+                            <span className="font-medium text-gray-800">
+                              {guest.firstName} {guest.lastName}
+                            </span>
+                            <div className="flex gap-2">
+                              <button
+                                type="button"
+                                onClick={() => updateGuestRSVP(guest.id, 'attending', true)}
+                                className={`px-4 py-2 rounded text-sm font-medium transition-colors ${
+                                  guestRsvp?.attending === true
+                                    ? 'bg-green-600 text-white'
+                                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                }`}
+                              >
+                                Attending
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => updateGuestRSVP(guest.id, 'attending', false)}
+                                className={`px-4 py-2 rounded text-sm font-medium transition-colors ${
+                                  guestRsvp?.attending === false
+                                    ? 'bg-red-600 text-white'
+                                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                }`}
+                              >
+                                Not Attending
+                              </button>
+                            </div>
+                          </div>
+
+                          {/* Plus One Section */}
+                          {guest.canBringPlusOne && plusOne && guestRsvp?.attending && (
+                            <div className="mt-4 pt-4 border-t border-gray-100">
+                              <p className="text-sm text-gray-600 mb-3">
+                                Would you like to bring a guest?
+                              </p>
+                              
+                              <div className="flex gap-2 mb-4">
+                                <button
+                                  type="button"
+                                  onClick={() => updateGuestRSVP(plusOne.id, 'attending', true)}
+                                  className={`px-4 py-2 rounded text-sm font-medium transition-colors ${
+                                    guestRSVPs[plusOne.id]?.attending === true
+                                      ? 'bg-green-600 text-white'
+                                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                  }`}
+                                >
+                                  Yes
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => updateGuestRSVP(plusOne.id, 'attending', false)}
+                                  className={`px-4 py-2 rounded text-sm font-medium transition-colors ${
+                                    guestRSVPs[plusOne.id]?.attending === false
+                                      ? 'bg-red-600 text-white'
+                                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                  }`}
+                                >
+                                  No
+                                </button>
+                              </div>
+
+                              {/* Plus One Name Entry */}
+                              {guestRSVPs[plusOne.id]?.attending && (
+                                <div className="bg-purple-50 p-4 rounded">
+                                  <p className="text-sm text-purple-700 mb-3">
+                                    Please provide your guest's name:
+                                  </p>
+                                  <div className="grid grid-cols-2 gap-3">
+                                    <input
+                                      type="text"
+                                      value={guestRSVPs[plusOne.id]?.plusOneFirstName || ''}
+                                      onChange={(e) => updateGuestRSVP(plusOne.id, 'plusOneFirstName', e.target.value)}
+                                      placeholder="First name"
+                                      className="input-field"
+                                      required
+                                    />
+                                    <input
+                                      type="text"
+                                      value={guestRSVPs[plusOne.id]?.plusOneLastName || ''}
+                                      onChange={(e) => updateGuestRSVP(plusOne.id, 'plusOneLastName', e.target.value)}
+                                      placeholder="Last name"
+                                      className="input-field"
+                                    />
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {error && (
+                  <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded">
+                    <p className="text-red-600 text-center">{error}</p>
+                  </div>
+                )}
+
+                <button
+                  type="button"
+                  onClick={handleAttendanceNext}
+                  disabled={loading || guests.filter(g => !g.isPlusOne).some(g => guestRSVPs[g.id]?.attending === null)}
+                  className="btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {loading ? 'Saving...' : 'Next: Meal Choices'}
+                </button>
+              </motion.div>
+            )}
+
+            {/* Step 3: Meals */}
+            {step === 'meals' && party && (
+              <motion.div
+                key="meals"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+              >
+                <div className="card mb-8">
+                  <h2 className="font-display text-2xl text-burgundy-900 text-center mb-2">
+                    Meal Choices
+                  </h2>
+                  <p className="text-gray-600 text-center">
+                    Please select meal preferences for each attending guest.
                   </p>
                 </div>
 
-                <form onSubmit={handleSubmit}>
-                  {/* Attendance */}
-                  <div className="card mb-8">
-                    <h3 className="font-display text-xl text-burgundy-900 mb-6">
-                      Who will be attending?
-                    </h3>
+                <div className="space-y-6">
+                  {getAttendingGuests().map((guest) => {
+                    const displayName = getDisplayName(guest);
+                    const guestRsvp = guestRSVPs[guest.id];
 
-                    <div className="space-y-4">
-                      {partyData.guests.map((guest) => (
-                        <label
-                          key={guest.id}
-                          className="flex items-center gap-4 p-4 border border-burgundy-100 cursor-pointer hover:bg-burgundy-50 transition-colors"
-                        >
-                          <input
-                            type="checkbox"
-                            checked={formData.attending[guest.id] || false}
-                            onChange={() => toggleAttending(guest.id)}
-                            className="w-5 h-5 rounded border-burgundy-300 text-burgundy-900 focus:ring-burgundy-900"
-                          />
-                          <span className="flex-1">
-                            <span className="font-medium text-gray-800">
-                              {guest.isPlusOne ? 'Plus One' : guest.name}
-                            </span>
-                            {guest.isPlusOne && (
-                              <span className="text-gray-500 text-sm ml-2">(Guest)</span>
-                            )}
-                          </span>
-                        </label>
-                      ))}
-                    </div>
-                  </div>
+                    return (
+                      <div key={guest.id} className="card">
+                        <h3 className="font-display text-lg text-burgundy-900 mb-4">
+                          {displayName}
+                          {guest.isPlusOne && (
+                            <span className="ml-2 text-sm text-purple-600">(Guest)</span>
+                          )}
+                        </h3>
 
-                  {/* Meal Selection - only for attending guests */}
-                  {Object.values(formData.attending).some(Boolean) && (
-                    <div className="card mb-8">
-                      <h3 className="font-display text-xl text-burgundy-900 mb-2">
-                        Meal Selection
-                      </h3>
-                      <p className="text-gray-500 text-sm mb-6">
-                        Menu options will be updated closer to the date. Please check back later.
-                      </p>
-
-                      {partyData.guests
-                        .filter(guest => formData.attending[guest.id])
-                        .map((guest) => (
-                          <div key={guest.id} className="mb-6 last:mb-0">
+                        <div className="space-y-4">
+                          <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">
-                              {guest.isPlusOne ? 'Plus One' : guest.name}
+                              Meal Choice
                             </label>
                             <select
-                              value={formData.meal_choices[guest.id] || ''}
-                              onChange={(e) => setFormData(prev => ({
-                                ...prev,
-                                meal_choices: {
-                                  ...prev.meal_choices,
-                                  [guest.id]: e.target.value,
-                                },
-                              }))}
+                              value={guestRsvp?.mealChoice || ''}
+                              onChange={(e) => updateGuestRSVP(guest.id, 'mealChoice', e.target.value)}
                               className="input-field"
                             >
                               <option value="">Select a meal option</option>
@@ -337,96 +599,151 @@ export default function RSVP() {
                               ))}
                             </select>
                           </div>
-                        ))}
-                    </div>
-                  )}
 
-                  {/* Dietary Restrictions */}
-                  {Object.values(formData.attending).some(Boolean) && (
-                    <div className="card mb-8">
-                      <h3 className="font-display text-xl text-burgundy-900 mb-6">
-                        Dietary Requirements
-                      </h3>
-
-                      {partyData.guests
-                        .filter(guest => formData.attending[guest.id])
-                        .map((guest) => (
-                          <div key={guest.id} className="mb-6 last:mb-0">
+                          <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">
-                              {guest.isPlusOne ? 'Plus One' : guest.name}
+                              Dietary Requirements
                             </label>
                             <input
                               type="text"
-                              value={formData.dietary_restrictions[guest.id] || ''}
-                              onChange={(e) => setFormData(prev => ({
-                                ...prev,
-                                dietary_restrictions: {
-                                  ...prev.dietary_restrictions,
-                                  [guest.id]: e.target.value,
-                                },
-                              }))}
+                              value={guestRsvp?.dietaryRequirements || ''}
+                              onChange={(e) => updateGuestRSVP(guest.id, 'dietaryRequirements', e.target.value)}
                               placeholder="Any allergies or dietary requirements?"
                               className="input-field"
                             />
                           </div>
-                        ))}
-                    </div>
-                  )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
 
-                  {/* Song Request */}
-                  <div className="card mb-8">
-                    <h3 className="font-display text-xl text-burgundy-900 mb-6">
-                      Song Request
-                    </h3>
-                    <p className="text-gray-500 text-sm mb-4">
-                      What song will get you on the dance floor?
-                    </p>
-                    <input
-                      type="text"
-                      value={formData.song_request}
-                      onChange={(e) => setFormData(prev => ({ ...prev, song_request: e.target.value }))}
-                      placeholder="Song title - Artist"
-                      className="input-field"
-                    />
+                {error && (
+                  <div className="mt-4 mb-4 p-4 bg-red-50 border border-red-200 rounded">
+                    <p className="text-red-600 text-center">{error}</p>
                   </div>
+                )}
 
-                  {/* Recipe */}
-                  <div className="card mb-8">
-                    <h3 className="font-display text-xl text-burgundy-900 mb-6">
-                      Share a Recipe
-                    </h3>
-                    <p className="text-gray-500 text-sm mb-4">
-                      We'd love to collect recipes from our guests! Please share a favourite 
-                      recipe that means something to you.
-                    </p>
-
-                    <textarea
-                      value={formData.recipe_text}
-                      onChange={(e) => setFormData(prev => ({ ...prev, recipe_text: e.target.value }))}
-                      placeholder="Type your recipe here..."
-                      rows={6}
-                      className="input-field resize-none"
-                    />
-                  </div>
-
-                  {error && (
-                    <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded">
-                      <p className="text-red-600 text-center">{error}</p>
-                    </div>
-                  )}
-
+                <div className="flex gap-4 mt-8">
                   <button
-                    type="submit"
-                    disabled={loading}
-                    className="btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed"
+                    type="button"
+                    onClick={() => setStep('attendance')}
+                    className="btn-secondary flex-1"
                   >
-                    {loading ? 'Submitting...' : 'Submit RSVP'}
+                    Back
                   </button>
-                </form>
+                  <button
+                    type="button"
+                    onClick={handleMealsNext}
+                    disabled={loading}
+                    className="btn-primary flex-1 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {loading ? 'Saving...' : 'Next: Song & Recipe'}
+                  </button>
+                </div>
               </motion.div>
             )}
 
-            {/* Step 3: Success */}
+            {/* Step 4: Extras (Song & Recipe) */}
+            {step === 'extras' && party && (
+              <motion.div
+                key="extras"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+              >
+                <div className="card mb-8">
+                  <h2 className="font-display text-2xl text-burgundy-900 text-center mb-2">
+                    Almost Done!
+                  </h2>
+                  <p className="text-gray-600 text-center">
+                    Just a couple more things...
+                  </p>
+                </div>
+
+                {/* Song Request */}
+                <div className="card mb-6">
+                  <h3 className="font-display text-xl text-burgundy-900 mb-4">
+                    🎵 Song Request
+                  </h3>
+                  <p className="text-gray-500 text-sm mb-4">
+                    What song will get you on the dance floor?
+                  </p>
+                  <input
+                    type="text"
+                    value={partyExtras.songRequest}
+                    onChange={(e) => setPartyExtras(prev => ({ ...prev, songRequest: e.target.value }))}
+                    placeholder="Song title - Artist"
+                    className="input-field"
+                  />
+                </div>
+
+                {/* Recipe */}
+                <div className="card mb-8">
+                  <h3 className="font-display text-xl text-burgundy-900 mb-4">
+                    📖 Share a Recipe
+                  </h3>
+                  <p className="text-gray-500 text-sm mb-4">
+                    We'd love to collect recipes from our guests! Please share a favourite 
+                    recipe that means something to you.
+                  </p>
+                  
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Recipe Name
+                      </label>
+                      <input
+                        type="text"
+                        value={partyExtras.recipeTitle}
+                        onChange={(e) => setPartyExtras(prev => ({ ...prev, recipeTitle: e.target.value }))}
+                        placeholder="e.g. Grandma's Apple Pie"
+                        className="input-field"
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Recipe
+                      </label>
+                      <textarea
+                        value={partyExtras.recipeText}
+                        onChange={(e) => setPartyExtras(prev => ({ ...prev, recipeText: e.target.value }))}
+                        placeholder="Ingredients and instructions..."
+                        rows={8}
+                        className="input-field resize-none"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {error && (
+                  <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded">
+                    <p className="text-red-600 text-center">{error}</p>
+                  </div>
+                )}
+
+                <div className="flex gap-4">
+                  <button
+                    type="button"
+                    onClick={() => getAttendingGuests().length > 0 ? setStep('meals') : setStep('attendance')}
+                    className="btn-secondary flex-1"
+                  >
+                    Back
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleExtrasSubmit}
+                    disabled={loading}
+                    className="btn-primary flex-1 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {loading ? 'Submitting...' : 'Submit RSVP'}
+                  </button>
+                </div>
+              </motion.div>
+            )}
+
+            {/* Step 5: Success */}
             {step === 'success' && (
               <motion.div
                 key="success"

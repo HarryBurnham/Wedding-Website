@@ -1,28 +1,30 @@
 -- ============================================
--- Wedding Website Database Schema for Supabase
--- Run this ENTIRE file in the Supabase SQL editor
+-- INDIVIDUAL SQL QUERIES FOR SUPABASE
+-- Run these one at a time in order
 -- ============================================
 
--- Enable UUID extension
+-- ============================================
+-- QUERY 1: Enable UUID extension
+-- ============================================
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
+
 -- ============================================
--- PARTIES TABLE
--- Groups of guests who login together
+-- QUERY 2: Create parties table
 -- ============================================
 CREATE TABLE parties (
   party_id SERIAL PRIMARY KEY,
   party_name VARCHAR(100) UNIQUE NOT NULL,
   password VARCHAR(100) NOT NULL,
-  invited_to_ceremony BOOLEAN DEFAULT TRUE,  -- All day guests
-  invited_to_reception BOOLEAN DEFAULT TRUE, -- Evening only if ceremony is false
+  invited_to_ceremony BOOLEAN DEFAULT TRUE,
+  invited_to_reception BOOLEAN DEFAULT TRUE,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
+
 -- ============================================
--- GUESTS TABLE
--- Individual people within a party
+-- QUERY 3: Create guests table
 -- ============================================
 CREATE TABLE guests (
   id SERIAL PRIMARY KEY,
@@ -36,25 +38,25 @@ CREATE TABLE guests (
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
+
 -- ============================================
--- GUEST_RSVPS TABLE
--- Individual RSVP responses for each guest
+-- QUERY 4: Create guest_rsvps table
 -- ============================================
 CREATE TABLE guest_rsvps (
   id SERIAL PRIMARY KEY,
   guest_id INTEGER REFERENCES guests(id) ON DELETE CASCADE UNIQUE,
-  attending BOOLEAN DEFAULT NULL,  -- NULL = not responded, true = attending, false = not attending
+  attending BOOLEAN DEFAULT NULL,
   meal_choice VARCHAR(100),
   dietary_requirements TEXT,
-  plus_one_first_name VARCHAR(100),  -- Only used if guest is_plus_one = true
-  plus_one_last_name VARCHAR(100),   -- Only used if guest is_plus_one = true
+  plus_one_first_name VARCHAR(100),
+  plus_one_last_name VARCHAR(100),
   submitted_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
+
 -- ============================================
--- PARTY_EXTRAS TABLE
--- Song requests and recipes per party
+-- QUERY 5: Create party_extras table
 -- ============================================
 CREATE TABLE party_extras (
   id SERIAL PRIMARY KEY,
@@ -66,9 +68,9 @@ CREATE TABLE party_extras (
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
+
 -- ============================================
--- CONTACT MESSAGES TABLE
--- Messages from the contact form
+-- QUERY 6: Create contact_messages table
 -- ============================================
 CREATE TABLE contact_messages (
   id SERIAL PRIMARY KEY,
@@ -79,8 +81,9 @@ CREATE TABLE contact_messages (
   sent_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
+
 -- ============================================
--- INDEXES
+-- QUERY 7: Create indexes
 -- ============================================
 CREATE INDEX idx_parties_party_name ON parties(party_name);
 CREATE INDEX idx_guests_party_id ON guests(party_id);
@@ -88,8 +91,9 @@ CREATE INDEX idx_guests_plus_one_for ON guests(plus_one_for);
 CREATE INDEX idx_guest_rsvps_guest_id ON guest_rsvps(guest_id);
 CREATE INDEX idx_party_extras_party_id ON party_extras(party_id);
 
+
 -- ============================================
--- ROW LEVEL SECURITY (RLS)
+-- QUERY 8: Enable RLS on all tables
 -- ============================================
 ALTER TABLE parties ENABLE ROW LEVEL SECURITY;
 ALTER TABLE guests ENABLE ROW LEVEL SECURITY;
@@ -97,13 +101,24 @@ ALTER TABLE guest_rsvps ENABLE ROW LEVEL SECURITY;
 ALTER TABLE party_extras ENABLE ROW LEVEL SECURITY;
 ALTER TABLE contact_messages ENABLE ROW LEVEL SECURITY;
 
--- Policies for public access
+
+-- ============================================
+-- QUERY 9: Create RLS policies for parties
+-- ============================================
 CREATE POLICY "Allow party lookup" ON parties
   FOR SELECT USING (true);
 
+
+-- ============================================
+-- QUERY 10: Create RLS policies for guests
+-- ============================================
 CREATE POLICY "Allow guests lookup" ON guests
   FOR SELECT USING (true);
 
+
+-- ============================================
+-- QUERY 11: Create RLS policies for guest_rsvps
+-- ============================================
 CREATE POLICY "Allow guest_rsvps select" ON guest_rsvps
   FOR SELECT USING (true);
 
@@ -113,6 +128,10 @@ CREATE POLICY "Allow guest_rsvps insert" ON guest_rsvps
 CREATE POLICY "Allow guest_rsvps update" ON guest_rsvps
   FOR UPDATE USING (true);
 
+
+-- ============================================
+-- QUERY 12: Create RLS policies for party_extras
+-- ============================================
 CREATE POLICY "Allow party_extras select" ON party_extras
   FOR SELECT USING (true);
 
@@ -122,35 +141,41 @@ CREATE POLICY "Allow party_extras insert" ON party_extras
 CREATE POLICY "Allow party_extras update" ON party_extras
   FOR UPDATE USING (true);
 
+
+-- ============================================
+-- QUERY 13: Create RLS policies for contact_messages
+-- ============================================
 CREATE POLICY "Allow contact message insert" ON contact_messages
   FOR INSERT WITH CHECK (true);
 
 CREATE POLICY "Allow contact message select" ON contact_messages
   FOR SELECT USING (true);
 
--- ============================================
--- HELPFUL VIEWS
--- ============================================
 
--- View to see parties with guest counts
+-- ============================================
+-- QUERY 14: Create parties_overview view
+-- ============================================
 CREATE VIEW parties_overview AS
-SELECT 
-  p.party_id,
-  p.party_name,
-  p.password,
-  p.invited_to_ceremony,
-  p.invited_to_reception,
-  CASE 
-    WHEN p.invited_to_ceremony THEN 'All Day'
-    ELSE 'Evening Only'
-  END AS invitation_type,
-  COUNT(g.id) AS guest_count,
-  p.created_at
+SELECT
+    p.id AS party_id,
+    p.party_name,
+    p.password,
+    p.invited_to_ceremony,
+    p.invited_to_reception,
+    CASE
+        WHEN p.invited_to_ceremony THEN 'All Day'
+        ELSE 'Evening Only'
+    END AS invitation_type,
+    COUNT(g.id) AS guest_count,
+    p.created_at
 FROM parties p
-LEFT JOIN guests g ON p.party_id = g.party_id
-GROUP BY p.party_id;
+LEFT JOIN guests g ON p.id = g.party_id
+GROUP BY p.id, p.party_name, p.password, p.invited_to_ceremony, p.invited_to_reception, p.created_at;s
 
--- View to see guests with their RSVP status and party info
+
+-- ============================================
+-- QUERY 15: Create guests_with_rsvp view
+-- ============================================
 CREATE VIEW guests_with_rsvp AS
 SELECT 
   g.id AS guest_id,
@@ -164,7 +189,7 @@ SELECT
   g.plus_one_for,
   r.attending,
   r.meal_choice,
-  r.dietary_requirements,
+  r.dietary_requirements,  -- fixed typo
   r.plus_one_first_name,
   r.plus_one_last_name,
   CASE 
@@ -176,10 +201,13 @@ SELECT
   p.invited_to_reception,
   r.submitted_at
 FROM guests g
-JOIN parties p ON g.party_id = p.party_id
+JOIN parties p ON g.party_id = p.id
 LEFT JOIN guest_rsvps r ON g.id = r.guest_id;
 
--- View for RSVP summary stats
+
+-- ============================================
+-- QUERY 16: Create rsvp_stats view
+-- ============================================
 CREATE VIEW rsvp_stats AS
 SELECT
   (SELECT COUNT(*) FROM parties) AS total_parties,
@@ -188,45 +216,13 @@ SELECT
   (SELECT COUNT(*) FROM guest_rsvps WHERE attending = true) AS total_attending,
   (SELECT COUNT(*) FROM guest_rsvps WHERE attending = false) AS total_not_attending,
   (SELECT COUNT(*) FROM guests g WHERE NOT EXISTS (SELECT 1 FROM guest_rsvps r WHERE r.guest_id = g.id)) AS total_pending,
-  (SELECT COUNT(*) FROM guest_rsvps r JOIN guests g ON r.guest_id = g.id JOIN parties p ON g.party_id = p.party_id WHERE r.attending = true AND p.invited_to_ceremony = true) AS all_day_attending,
-  (SELECT COUNT(*) FROM guest_rsvps r JOIN guests g ON r.guest_id = g.id JOIN parties p ON g.party_id = p.party_id WHERE r.attending = true AND p.invited_to_ceremony = false) AS evening_only_attending;
-
--- ============================================
--- SAMPLE DATA (Optional - uncomment to use)
--- ============================================
-
-/*
--- Insert sample parties
-INSERT INTO parties (party_name, password, invited_to_ceremony, invited_to_reception)
-VALUES 
-  ('The Smith Family', 'smith2026', true, true),      -- All day
-  ('John & Jane Doe', 'doe2026', true, true),         -- All day
-  ('Evening Guest', 'evening2026', false, true);      -- Evening only
-
--- Insert sample guests for The Smith Family (party_id = 1)
-INSERT INTO guests (party_id, first_name, last_name, is_plus_one, can_bring_plus_one, plus_one_for)
-VALUES 
-  (1, 'David', 'Smith', false, true, NULL),   -- David can bring a +1
-  (1, 'Sarah', 'Smith', false, false, NULL);  -- Sarah cannot bring a +1
-
--- Add David's plus one slot (references David's id which is 1)
-INSERT INTO guests (party_id, first_name, last_name, is_plus_one, can_bring_plus_one, plus_one_for)
-VALUES 
-  (1, 'Guest', 'TBC', true, false, 1);  -- Plus one for David (id=1)
-
--- Insert sample guests for John & Jane Doe (party_id = 2)
-INSERT INTO guests (party_id, first_name, last_name, is_plus_one, can_bring_plus_one, plus_one_for)
-VALUES 
-  (2, 'John', 'Doe', false, false, NULL),
-  (2, 'Jane', 'Doe', false, false, NULL);
-
--- Insert sample guest for Evening Guest (party_id = 3)
-INSERT INTO guests (party_id, first_name, last_name, is_plus_one, can_bring_plus_one, plus_one_for)
-VALUES 
-  (3, 'Bob', 'Wilson', false, true, NULL);
-
--- Add Bob's plus one slot
-INSERT INTO guests (party_id, first_name, last_name, is_plus_one, can_bring_plus_one, plus_one_for)
-VALUES 
-  (3, 'Guest', 'TBC', true, false, 6);  -- Plus one for Bob (id=6)
-*/
+  (SELECT COUNT(*) 
+   FROM guest_rsvps r 
+   JOIN guests g ON r.guest_id = g.id 
+   JOIN parties p ON g.party_id = p.id   -- <-- fixed
+   WHERE r.attending = true AND p.invited_to_ceremony = true) AS all_day_attending,
+  (SELECT COUNT(*) 
+   FROM guest_rsvps r 
+   JOIN guests g ON r.guest_id = g.id 
+   JOIN parties p ON g.party_id = p.id   -- <-- fixed
+   WHERE r.attending = true AND p.invited_to_ceremony = false) AS evening_only_attending;

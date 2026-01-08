@@ -3,32 +3,40 @@
 import { useState, useEffect } from 'react';
 
 interface GuestDetail {
-  id: string;
-  name: string;
-  is_plus_one: boolean;
-  attending: boolean;
-  meal_choice: string | null;
-  dietary_restriction: string | null;
+  id: number;
+  firstName: string;
+  lastName: string;
+  isPlusOne: boolean;
+  canBringPlusOne: boolean;
+  plusOneFor: number | null;
+  attending: boolean | null;
+  mealChoice: string | null;
+  dietaryRequirements: string | null;
+  plusOneFirstName: string | null;
+  plusOneLastName: string | null;
+  displayName: string;
+  submittedAt: string | null;
 }
 
-interface RSVPData {
-  id: number;
-  party_id: number;
-  party_code: string;
-  party_name: string;
-  attending: { [key: string]: boolean };
-  meal_choices: { [key: string]: string };
-  dietary_restrictions: { [key: string]: string };
-  song_request?: string;
-  recipe_text?: string;
-  submitted_at: string;
-  guest_details: GuestDetail[];
+interface PartyRSVP {
+  partyId: number;
+  partyName: string;
+  invitationType: string;
+  invitedToCeremony: boolean;
+  invitedToReception: boolean;
+  hasResponded: boolean;
+  attendingCount: number;
+  notAttendingCount: number;
+  guests: GuestDetail[];
+  songRequest: string | null;
+  recipeTitle: string | null;
+  recipeText: string | null;
 }
 
 export default function AdminRSVPs() {
-  const [rsvps, setRsvps] = useState<RSVPData[]>([]);
+  const [rsvps, setRsvps] = useState<PartyRSVP[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState<'all' | 'attending' | 'not-attending'>('all');
+  const [filter, setFilter] = useState<'all' | 'responded' | 'pending' | 'allday' | 'evening'>('all');
 
   useEffect(() => {
     fetchRSVPs();
@@ -46,60 +54,38 @@ export default function AdminRSVPs() {
     }
   };
 
-  const hasAttendingGuests = (rsvp: RSVPData) => {
-    return rsvp.guest_details.some(g => g.attending);
-  };
-
   const filteredRsvps = rsvps.filter(rsvp => {
     if (filter === 'all') return true;
-    if (filter === 'attending') return hasAttendingGuests(rsvp);
-    if (filter === 'not-attending') return !hasAttendingGuests(rsvp);
+    if (filter === 'responded') return rsvp.hasResponded;
+    if (filter === 'pending') return !rsvp.hasResponded;
+    if (filter === 'allday') return rsvp.invitedToCeremony;
+    if (filter === 'evening') return !rsvp.invitedToCeremony;
     return true;
   });
 
-  const totalAttending = rsvps.reduce(
-    (sum, rsvp) => sum + rsvp.guest_details.filter(g => g.attending).length,
-    0
-  );
-
-  const totalNotAttending = rsvps.reduce(
-    (sum, rsvp) => sum + rsvp.guest_details.filter(g => !g.attending).length,
-    0
-  );
+  const totalAttending = rsvps.reduce((sum, r) => sum + r.attendingCount, 0);
+  const totalNotAttending = rsvps.reduce((sum, r) => sum + r.notAttendingCount, 0);
 
   const exportRSVPs = () => {
-    const headers = [
-      'Party Code',
-      'Party Name',
-      'Guest Name',
-      'Attending',
-      'Meal Choice',
-      'Dietary Restrictions',
-      'Song Request',
-      'Submitted',
-    ];
-
+    const headers = ['Party', 'Type', 'Guest Name', 'Plus One?', 'Attending', 'Meal', 'Dietary', 'Song Request'];
     const rows: string[][] = [];
-    rsvps.forEach(rsvp => {
-      rsvp.guest_details.forEach(guest => {
+
+    rsvps.forEach(party => {
+      party.guests.forEach(guest => {
         rows.push([
-          rsvp.party_code,
-          rsvp.party_name,
-          guest.name,
-          guest.attending ? 'Yes' : 'No',
-          guest.meal_choice || '',
-          guest.dietary_restriction || '',
-          rsvp.song_request || '',
-          new Date(rsvp.submitted_at).toLocaleDateString(),
+          party.partyName,
+          party.invitationType,
+          guest.displayName,
+          guest.isPlusOne ? 'Yes' : 'No',
+          guest.attending === true ? 'Yes' : guest.attending === false ? 'No' : 'Pending',
+          guest.mealChoice || '',
+          guest.dietaryRequirements || '',
+          party.songRequest || '',
         ]);
       });
     });
 
-    const csv = [
-      headers.join(','),
-      ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
-    ].join('\n');
-
+    const csv = [headers.join(','), ...rows.map(row => row.map(cell => `"${cell}"`).join(','))].join('\n');
     const blob = new Blob([csv], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -114,147 +100,139 @@ export default function AdminRSVPs() {
         <h1 className="text-3xl font-display text-gray-900">RSVP Responses</h1>
         <button
           onClick={exportRSVPs}
-          className="px-4 py-2 text-sm border border-gray-300 rounded hover:bg-gray-50 transition-colors"
+          className="px-4 py-2 text-sm border border-gray-300 rounded hover:bg-gray-50"
         >
           Export CSV
         </button>
       </div>
 
-      {/* Summary Stats */}
-      <div className="grid md:grid-cols-3 gap-4 mb-8">
+      {/* Summary */}
+      <div className="grid md:grid-cols-4 gap-4 mb-8">
         <div className="bg-white p-4 rounded-lg shadow-sm text-center">
           <p className="text-3xl font-display text-gray-900">{rsvps.length}</p>
-          <p className="text-sm text-gray-500">Parties Responded</p>
+          <p className="text-sm text-gray-500">Total Parties</p>
         </div>
         <div className="bg-white p-4 rounded-lg shadow-sm text-center">
           <p className="text-3xl font-display text-green-600">{totalAttending}</p>
-          <p className="text-sm text-gray-500">Guests Attending</p>
+          <p className="text-sm text-gray-500">Attending</p>
         </div>
         <div className="bg-white p-4 rounded-lg shadow-sm text-center">
           <p className="text-3xl font-display text-red-600">{totalNotAttending}</p>
-          <p className="text-sm text-gray-500">Guests Not Attending</p>
+          <p className="text-sm text-gray-500">Not Attending</p>
+        </div>
+        <div className="bg-white p-4 rounded-lg shadow-sm text-center">
+          <p className="text-3xl font-display text-amber-600">{rsvps.filter(r => !r.hasResponded).length}</p>
+          <p className="text-sm text-gray-500">Pending</p>
         </div>
       </div>
 
-      {/* Filter */}
+      {/* Filters */}
       <div className="mb-6">
-        <div className="inline-flex bg-gray-100 rounded p-1">
-          <button
-            onClick={() => setFilter('all')}
-            className={`px-4 py-2 text-sm rounded transition-colors ${
-              filter === 'all' ? 'bg-white shadow' : 'hover:bg-gray-200'
-            }`}
-          >
-            All ({rsvps.length})
-          </button>
-          <button
-            onClick={() => setFilter('attending')}
-            className={`px-4 py-2 text-sm rounded transition-colors ${
-              filter === 'attending' ? 'bg-white shadow' : 'hover:bg-gray-200'
-            }`}
-          >
-            Has Attending
-          </button>
-          <button
-            onClick={() => setFilter('not-attending')}
-            className={`px-4 py-2 text-sm rounded transition-colors ${
-              filter === 'not-attending' ? 'bg-white shadow' : 'hover:bg-gray-200'
-            }`}
-          >
-            None Attending
-          </button>
+        <div className="inline-flex bg-gray-100 rounded p-1 flex-wrap gap-1">
+          {[
+            { key: 'all', label: 'All' },
+            { key: 'responded', label: 'Responded' },
+            { key: 'pending', label: 'Pending' },
+            { key: 'allday', label: 'All Day' },
+            { key: 'evening', label: 'Evening' },
+          ].map(f => (
+            <button
+              key={f.key}
+              onClick={() => setFilter(f.key as any)}
+              className={`px-4 py-2 text-sm rounded transition-colors ${
+                filter === f.key ? 'bg-white shadow' : 'hover:bg-gray-200'
+              }`}
+            >
+              {f.label}
+            </button>
+          ))}
         </div>
       </div>
 
       {/* RSVP List */}
       <div className="space-y-4">
         {loading ? (
-          <div className="bg-white p-8 rounded-lg shadow-sm text-center text-gray-500">
-            Loading...
-          </div>
+          <div className="bg-white p-8 rounded-lg shadow-sm text-center text-gray-500">Loading...</div>
         ) : filteredRsvps.length === 0 ? (
-          <div className="bg-white p-8 rounded-lg shadow-sm text-center text-gray-500">
-            No RSVP responses yet.
-          </div>
+          <div className="bg-white p-8 rounded-lg shadow-sm text-center text-gray-500">No RSVPs found.</div>
         ) : (
-          filteredRsvps.map((rsvp) => (
-            <div key={rsvp.id} className="bg-white p-6 rounded-lg shadow-sm">
-              <div className="flex items-start justify-between mb-4">
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-mono text-gray-400">#{rsvp.party_code}</span>
-                    <h3 className="text-lg font-medium text-gray-900">{rsvp.party_name}</h3>
+          filteredRsvps.map(party => (
+            <div key={party.partyId} className="bg-white rounded-lg shadow-sm overflow-hidden">
+              {/* Party Header */}
+              <div className="p-4 border-b bg-gray-50">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="font-medium text-gray-900">{party.partyName}</h3>
+                    <div className="flex items-center gap-2 mt-1">
+                      <span className={`text-xs px-2 py-0.5 rounded ${
+                        party.invitedToCeremony ? 'bg-green-100 text-green-700' : 'bg-purple-100 text-purple-700'
+                      }`}>
+                        {party.invitationType}
+                      </span>
+                      {party.hasResponded ? (
+                        <span className="text-xs text-green-600">✓ Responded</span>
+                      ) : (
+                        <span className="text-xs text-amber-600">⏳ Pending</span>
+                      )}
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-green-600 font-medium">{party.attendingCount}</span>
+                    <span className="text-gray-400 mx-1">/</span>
+                    <span className="text-red-600 font-medium">{party.notAttendingCount}</span>
                   </div>
                 </div>
-                <span
-                  className={`px-3 py-1 text-sm rounded-full ${
-                    hasAttendingGuests(rsvp)
-                      ? 'bg-green-100 text-green-700'
-                      : 'bg-red-100 text-red-700'
-                  }`}
-                >
-                  {rsvp.guest_details.filter(g => g.attending).length} attending
-                </span>
               </div>
 
-              {/* Guest Details */}
-              <div className="space-y-3 mb-4">
-                {rsvp.guest_details.map((guest) => (
-                  <div
-                    key={guest.id}
-                    className={`p-3 rounded ${
-                      guest.attending ? 'bg-green-50' : 'bg-gray-50'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="font-medium">
-                        {guest.name}
-                        {guest.is_plus_one && (
-                          <span className="ml-2 text-xs text-purple-600">(Plus One)</span>
-                        )}
-                      </span>
-                      <span className={`text-sm ${guest.attending ? 'text-green-600' : 'text-red-600'}`}>
-                        {guest.attending ? '✓ Attending' : '✗ Not Attending'}
-                      </span>
-                    </div>
-                    {guest.attending && (
-                      <div className="text-sm text-gray-600 space-y-1">
-                        {guest.meal_choice && (
-                          <p>Meal: {guest.meal_choice}</p>
-                        )}
-                        {guest.dietary_restriction && (
-                          <p>Dietary: {guest.dietary_restriction}</p>
-                        )}
+              {/* Guests */}
+              <div className="p-4">
+                <div className="space-y-3">
+                  {party.guests.map(guest => (
+                    <div
+                      key={guest.id}
+                      className={`p-3 rounded ${
+                        guest.attending === true ? 'bg-green-50' : 
+                        guest.attending === false ? 'bg-red-50' : 'bg-gray-50'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <span className="font-medium">{guest.displayName}</span>
+                          {guest.isPlusOne && (
+                            <span className="ml-2 text-xs text-purple-600">(+1)</span>
+                          )}
+                        </div>
+                        <span className={`text-sm ${
+                          guest.attending === true ? 'text-green-600' : 
+                          guest.attending === false ? 'text-red-600' : 'text-gray-400'
+                        }`}>
+                          {guest.attending === true ? '✓ Attending' : 
+                           guest.attending === false ? '✗ Not Attending' : 'Pending'}
+                        </span>
                       </div>
+                      {guest.attending && (guest.mealChoice || guest.dietaryRequirements) && (
+                        <div className="mt-2 text-sm text-gray-600">
+                          {guest.mealChoice && <span>Meal: {guest.mealChoice}</span>}
+                          {guest.mealChoice && guest.dietaryRequirements && <span className="mx-2">•</span>}
+                          {guest.dietaryRequirements && <span>Dietary: {guest.dietaryRequirements}</span>}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+
+                {/* Song & Recipe */}
+                {(party.songRequest || party.recipeTitle) && (
+                  <div className="mt-4 pt-4 border-t text-sm">
+                    {party.songRequest && (
+                      <p className="text-gray-600">🎵 Song: {party.songRequest}</p>
+                    )}
+                    {party.recipeTitle && (
+                      <p className="text-gray-600 mt-1">📖 Recipe: {party.recipeTitle}</p>
                     )}
                   </div>
-                ))}
-              </div>
-
-              {/* Song Request & Recipe */}
-              <div className="grid md:grid-cols-2 gap-4 text-sm border-t pt-4">
-                {rsvp.song_request && (
-                  <div>
-                    <p className="text-gray-500 mb-1">🎵 Song Request:</p>
-                    <p className="text-gray-700">{rsvp.song_request}</p>
-                  </div>
-                )}
-                {rsvp.recipe_text && (
-                  <div>
-                    <p className="text-gray-500 mb-1">📖 Recipe submitted</p>
-                  </div>
                 )}
               </div>
-
-              <p className="text-xs text-gray-400 mt-4">
-                Submitted: {new Date(rsvp.submitted_at).toLocaleDateString('en-GB', {
-                  day: 'numeric',
-                  month: 'long',
-                  year: 'numeric',
-                  hour: '2-digit',
-                  minute: '2-digit',
-                })}
-              </p>
             </div>
           ))
         )}
@@ -262,3 +240,4 @@ export default function AdminRSVPs() {
     </div>
   );
 }
+

@@ -1,65 +1,99 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
 
-export async function POST(req: Request) {
+export async function POST(request: NextRequest) {
   try {
-    const { party_name, password } = await req.json();
+    const body = await request.json();
+    const { party_name, password } = body;
 
     if (!party_name || !password) {
-      return NextResponse.json({ error: 'Missing party name or password' }, { status: 400 });
+      return NextResponse.json(
+        { error: 'Party name and password are required' },
+        { status: 400 }
+      );
     }
 
-    // Fetch the party by party_name
+    // Look up party by name and password
     const { data: party, error: partyError } = await supabase
       .from('parties')
       .select('*')
-      .eq('party_name', party_name)
+      .ilike('party_name', party_name.trim())
+      .eq('password', password)
       .single();
 
     if (partyError || !party) {
-      return NextResponse.json({ error: 'Party not found' }, { status: 404 });
+      return NextResponse.json(
+        { error: 'Invalid party name or password. Please check your details and try again.' },
+        { status: 401 }
+      );
     }
 
-    // Check password
-    if (party.password !== password) {
-      return NextResponse.json({ error: 'Incorrect password' }, { status: 401 });
-    }
-
-    // Fetch guests for the party
+    // Get all guests in this party
     const { data: guests, error: guestsError } = await supabase
       .from('guests')
-      .select('id, first_name, last_name, is_plus_one')
-      .eq('party_id', party.id);
-
-    if (guestsError) throw guestsError;
-
-    // Fetch existing RSVP if any
-    const { data: existingRsvp } = await supabase
-      .from('rsvps')
       .select('*')
-      .eq('party_id', party.id)
+      .eq('party_id', party.party_id)
+      .order('is_plus_one', { ascending: true })
+      .order('id', { ascending: true });
+
+    if (guestsError) {
+      console.error('Error fetching guests:', guestsError);
+      return NextResponse.json({ error: 'Failed to load guest details' }, { status: 500 });
+    }
+
+    // Get existing RSVPs for these guests
+    const guestIds = guests?.map(g => g.id) || [];
+    const { data: existingRsvps } = await supabase
+      .from('guest_rsvps')
+      .select('*')
+      .in('guest_id', guestIds);
+
+    // Get existing party extras
+    const { data: partyExtras } = await supabase
+      .from('party_extras')
+      .select('*')
+      .eq('party_id', party.party_id)
       .single();
 
-    // ✅ Return party_id so frontend can use it for RSVP submission
+    // Format guests
+    const formattedGuests = guests?.map(guest => ({
+      id: guest.id,
+      firstName: guest.first_name,
+      lastName: guest.last_name,
+      isPlusOne: guest.is_plus_one,
+      canBringPlusOne: guest.can_bring_plus_one,
+      plusOneFor: guest.plus_one_for,
+    })) || [];
+
+    // Format existing RSVPs as a map
+    const rsvpMap: { [key: number]: any } = {};
+    existingRsvps?.forEach(rsvp => {
+      rsvpMap[rsvp.guest_id] = {
+        attending: rsvp.attending,
+        mealChoice: rsvp.meal_choice,
+        dietaryRequirements: rsvp.dietary_requirements,
+        plusOneFirstName: rsvp.plus_one_first_name,
+        plusOneLastName: rsvp.plus_one_last_name,
+      };
+    });
+
     return NextResponse.json({
       party: {
-        id: party.id,                     // <-- MUST include party.id
-        name: party.party_name,
-        invited_to_ceremony: party.invited_to_ceremony,
-        invited_to_reception: party.invited_to_reception,
+        partyId: party.party_id,
+        partyName: party.party_name,
+        invitedToCeremony: party.invited_to_ceremony,
+        invitedToReception: party.invited_to_reception,
       },
-      guests: guests.map((g) => ({
-        id: g.id,
-        name: `${g.first_name} ${g.last_name}`,
-        firstName: g.first_name,
-        lastName: g.last_name,
-        isPlusOne: g.is_plus_one,
-        code: '',
-      })),
-      existing_rsvp: existingRsvp || null,
+      guests: formattedGuests,
+      existingRsvps: rsvpMap,
+      partyExtras: partyExtras ? {
+        songRequest: partyExtras.song_request,
+        recipeTitle: partyExtras.recipe_title,
+        recipeText: partyExtras.recipe_text,
+      } : null,
     });
   } catch (error) {
-    console.error('Login error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    console.error('Error in party login:', error);
+    return NextResponse.json({ error: 'An error occurred' }, { status: 500 });
   }
 }

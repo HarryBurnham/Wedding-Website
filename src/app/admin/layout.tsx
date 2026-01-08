@@ -16,7 +16,6 @@ export default function AdminLayout({
   const pathname = usePathname();
 
   useEffect(() => {
-    // Check if already authenticated
     const auth = sessionStorage.getItem('admin_auth');
     if (auth === 'true') {
       setIsAuthenticated(true);
@@ -25,7 +24,6 @@ export default function AdminLayout({
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    // Simple password check - in production, use proper auth
     const adminPassword = process.env.NEXT_PUBLIC_ADMIN_PASSWORD || 'wedding2026';
     
     if (password === adminPassword) {
@@ -40,110 +38,86 @@ export default function AdminLayout({
   const handleLogout = () => {
     sessionStorage.removeItem('admin_auth');
     setIsAuthenticated(false);
-    setPassword('');
   };
 
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen bg-cream-100 flex items-center justify-center px-6">
-        <div className="card max-w-md w-full">
-          <h1 className="font-display text-3xl text-burgundy-900 text-center mb-6">
-            Admin Access
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center p-6">
+        <div className="bg-white p-8 rounded-lg shadow-md max-w-md w-full">
+          <h1 className="text-2xl font-display text-gray-900 text-center mb-6">
+            Admin Login
           </h1>
           <form onSubmit={handleLogin}>
-            <div className="mb-6">
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Enter admin password"
-                className="input-field"
-                required
-              />
-            </div>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Enter admin password"
+              className="w-full px-4 py-3 border rounded mb-4"
+            />
             {error && (
-              <p className="text-red-600 text-center mb-4">{error}</p>
+              <p className="text-red-500 text-sm mb-4 text-center">{error}</p>
             )}
-            <button type="submit" className="btn-primary w-full">
+            <button
+              type="submit"
+              className="w-full bg-burgundy-900 text-white py-3 rounded hover:bg-burgundy-800 transition-colors"
+            >
               Login
             </button>
           </form>
-          <div className="mt-6 text-center">
+          <p className="text-center mt-6">
             <Link href="/" className="text-burgundy-700 hover:underline text-sm">
-              ← Back to Website
+              ← Back to website
             </Link>
-          </div>
+          </p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Admin Header */}
-      <header className="bg-burgundy-900 text-white">
+    <div className="min-h-screen bg-gray-100">
+      {/* Top Bar */}
+      <header className="bg-white shadow-sm">
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-8">
-            <Link href="/admin" className="font-display text-xl">
-              Wedding Admin
-            </Link>
-            <nav className="hidden md:flex items-center gap-6">
-              {ADMIN_NAV_LINKS.map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  className={`text-sm transition-colors ${
-                    pathname === link.href
-                      ? 'text-white'
-                      : 'text-burgundy-200 hover:text-white'
-                  }`}
-                >
-                  {link.label}
-                </Link>
-              ))}
-            </nav>
-          </div>
+          <h1 className="text-xl font-display text-burgundy-900">Wedding Admin</h1>
           <div className="flex items-center gap-4">
-            <Link
-              href="/"
-              target="_blank"
-              className="text-sm text-burgundy-200 hover:text-white"
-            >
-              View Site
+            <Link href="/" className="text-sm text-gray-500 hover:text-gray-700">
+              View Website
             </Link>
             <button
               onClick={handleLogout}
-              className="text-sm text-burgundy-200 hover:text-white"
+              className="text-sm text-gray-500 hover:text-gray-700"
             >
               Logout
             </button>
           </div>
         </div>
+      </header>
 
-        {/* Mobile Nav */}
-        <div className="md:hidden border-t border-burgundy-800">
-          <div className="max-w-7xl mx-auto px-6 py-2 flex gap-4 overflow-x-auto">
+      <div className="max-w-7xl mx-auto px-6 py-8">
+        {/* Navigation */}
+        <nav className="mb-8">
+          <div className="flex gap-2 flex-wrap">
             {ADMIN_NAV_LINKS.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
-                className={`text-sm whitespace-nowrap transition-colors ${
+                className={`px-4 py-2 rounded text-sm font-medium transition-colors ${
                   pathname === link.href
-                    ? 'text-white'
-                    : 'text-burgundy-200 hover:text-white'
+                    ? 'bg-burgundy-900 text-white'
+                    : 'bg-white text-gray-700 hover:bg-gray-50'
                 }`}
               >
                 {link.label}
               </Link>
             ))}
           </div>
-        </div>
-      </header>
+        </nav>
 
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-6 py-8">
+        {/* Content */}
         {children}
-      </main>
+      </div>
     </div>
   );
 }

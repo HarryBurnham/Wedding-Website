@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
     const { data: guests = [], error: guestsError } = await supabase
       .from('guests')
       .select('*')
-      .eq('party_id', party.party_id)
+      .eq('party_id', party.id)
       .order('is_plus_one', { ascending: true })
       .order('id', { ascending: true });
 
@@ -54,7 +54,7 @@ export async function POST(request: NextRequest) {
       const { data } = await supabase
         .from('party_extras')
         .select('*')
-        .eq('party_id', party.party_id)
+        .eq('party_id', party.id)
         .single();
       partyExtras = data;
     } catch {

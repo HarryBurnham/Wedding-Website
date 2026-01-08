@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Get existing RSVPs for these guests (empty if no guests)
-    const guestIds = guests.map(g => g.id);
+    const guestIds = (guests ?? []).map(g => g.id);
     const { data: existingRsvps = [] } = await supabase
       .from('guest_rsvps')
       .select('*')
@@ -62,7 +62,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Format guests
-    const formattedGuests = guests.map(guest => ({
+    const formattedGuests = guests?.map(guest => ({
       id: guest.id,
       firstName: guest.first_name,
       lastName: guest.last_name,
@@ -73,7 +73,7 @@ export async function POST(request: NextRequest) {
 
     // Format existing RSVPs as a map
     const rsvpMap: { [key: number]: any } = {};
-    existingRsvps.forEach(rsvp => {
+    (existingRsvps ?? []).forEach(rsvp => {
       rsvpMap[rsvp.guest_id] = {
         attending: rsvp.attending,
         mealChoice: rsvp.meal_choice,

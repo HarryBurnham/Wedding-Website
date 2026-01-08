@@ -1,58 +1,66 @@
 import { NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
 
-export async function GET() {
+export async function POST(req: Request) {
   try {
-    const { data: rsvps, error } = await supabase
-      .from('rsvps')
-      .select(`
-        *,
-        parties (
-          id,
-          party_name
-        )
-      `)
-      .order('submitted_at', { ascending: false });
+    const { party_name, password } = await req.json();
 
-    if (error) throw error;
+    if (!party_name || !password) {
+      return NextResponse.json({ error: 'Missing party name or password' }, { status: 400 });
+    }
 
-    // Get all guests to map IDs to names
-    const { data: guests } = await supabase
+    // 1️⃣ Fetch party by party_name
+    const { data: party, error: partyError } = await supabase
+      .from('parties')
+      .select('*')
+      .eq('party_name', party_name)
+      .single(); // should only be one match
+
+    if (partyError) throw partyError;
+    if (!party) {
+      return NextResponse.json({ error: 'Party not found' }, { status: 404 });
+    }
+
+    // 2️⃣ Check password (replace this with hashed passwords in production!)
+    if (party.password !== password) {
+      return NextResponse.json({ error: 'Incorrect password' }, { status: 401 });
+    }
+
+    // 3️⃣ Fetch guests for this party
+    const { data: guests, error: guestError } = await supabase
       .from('guests')
-      .select('id, first_name, last_name, is_plus_one, party_id');
+      .select('id, first_name, last_name, is_plus_one')
+      .eq('party_id', party.id);
 
-    const guestMap = new Map(
-      guests?.map(g => [g.id, g]) || []
-    );
+    if (guestError) throw guestError;
 
-    const formattedRsvps = rsvps?.map(rsvp => ({
-      id: rsvp.id,
-      party_id: rsvp.party_id,
-      party_code: rsvp.parties ? String(rsvp.parties.id).padStart(3, '0') : null,
-      party_name: rsvp.parties?.party_name || 'Unknown',
-      attending: rsvp.attending || {},
-      meal_choices: rsvp.meal_choices || {},
-      dietary_restrictions: rsvp.dietary_restrictions || {},
-      song_request: rsvp.song_request,
-      recipe_text: rsvp.recipe_text,
-      submitted_at: rsvp.submitted_at,
-      // Map guest IDs to names for display
-      guest_details: Object.keys(rsvp.attending || {}).map(guestId => {
-        const guest = guestMap.get(parseInt(guestId));
-        return {
-          id: guestId,
-          name: guest ? `${guest.first_name} ${guest.last_name}` : `Guest #${guestId}`,
-          is_plus_one: guest?.is_plus_one || false,
-          attending: rsvp.attending?.[guestId] || false,
-          meal_choice: rsvp.meal_choices?.[guestId] || null,
-          dietary_restriction: rsvp.dietary_restrictions?.[guestId] || null,
-        };
-      }),
-    })) || [];
+    // 4️⃣ Fetch existing RSVP for this party (optional)
+    const { data: existingRsvp } = await supabase
+      .from('rsvps')
+      .select('*')
+      .eq('party_id', party.id)
+      .single();
 
-    return NextResponse.json({ rsvps: formattedRsvps });
+    // 5️⃣ Return data in the shape your frontend expects
+    return NextResponse.json({
+      party: {
+        id: party.id,
+        name: party.party_name,
+        invited_to_ceremony: party.invited_to_ceremony,
+        invited_to_reception: party.invited_to_reception,
+      },
+      guests: guests.map(g => ({
+        id: g.id,
+        name: `${g.first_name} ${g.last_name}`,
+        firstName: g.first_name,
+        lastName: g.last_name,
+        isPlusOne: g.is_plus_one,
+        code: '', // optional
+      })),
+      existing_rsvp: existingRsvp || null,
+    });
   } catch (error) {
-    console.error('Error fetching RSVPs:', error);
-    return NextResponse.json({ rsvps: [] });
+    console.error('Login error:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

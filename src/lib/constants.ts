@@ -16,7 +16,7 @@ export const WEDDING_CONFIG = {
     photos: [
       '/images/Staunton_Harold_Hall.jpg',
       '/images/The_Lake_at_Staunton_Harold_Hall.jpg',
-       '/images/grounds.jpg',
+      '/images/grounds.jpg',
       '/images/salon.jpg',
       '/images/library.jpg',
     ], 

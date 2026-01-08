@@ -158,7 +158,7 @@ export default function Contact() {
               href="mailto:your-email@example.com"
               className="text-burgundy-700 hover:text-burgundy-900 transition-colors"
             >
-              your-email@example.com
+              harryadiawedding@gmail.com
             </a>
           </div>
         </div>

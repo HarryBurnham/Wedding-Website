@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Get all guests in this party
-    const { data: guests, error: guestsError } = await supabase
+    const { data: guests = [], error: guestsError } = await supabase
       .from('guests')
       .select('*')
       .eq('party_id', party.party_id)
@@ -38,41 +38,42 @@ export async function POST(request: NextRequest) {
 
     if (guestsError) {
       console.error('Error fetching guests:', guestsError);
-      return NextResponse.json({ error: 'Failed to load guest details' }, { status: 500 });
+      // Don't block login, just return empty array
     }
 
-    // Safely handle empty guest list
-    if (!guests || guests.length === 0) {
-      return NextResponse.json({ error: 'No guests found for this party' }, { status: 404 });
-    }
-
-    // Get existing RSVPs for these guests
-    const guestIds = guests?.map(g => g.id) || [];
-    const { data: existingRsvps } = await supabase
+    // Get existing RSVPs for these guests (empty if no guests)
+    const guestIds = guests.map(g => g.id);
+    const { data: existingRsvps = [] } = await supabase
       .from('guest_rsvps')
       .select('*')
       .in('guest_id', guestIds);
 
-    // Get existing party extras
-    const { data: partyExtras } = await supabase
-      .from('party_extras')
-      .select('*')
-      .eq('party_id', party.party_id)
-      .single();
+    // Get existing party extras (null if not exist)
+    let partyExtras = null;
+    try {
+      const { data } = await supabase
+        .from('party_extras')
+        .select('*')
+        .eq('party_id', party.party_id)
+        .single();
+      partyExtras = data;
+    } catch {
+      partyExtras = null;
+    }
 
     // Format guests
-    const formattedGuests = guests?.map(guest => ({
+    const formattedGuests = guests.map(guest => ({
       id: guest.id,
       firstName: guest.first_name,
       lastName: guest.last_name,
       isPlusOne: guest.is_plus_one,
       canBringPlusOne: guest.can_bring_plus_one,
       plusOneFor: guest.plus_one_for,
-    })) || [];
+    }));
 
     // Format existing RSVPs as a map
     const rsvpMap: { [key: number]: any } = {};
-    existingRsvps?.forEach(rsvp => {
+    existingRsvps.forEach(rsvp => {
       rsvpMap[rsvp.guest_id] = {
         attending: rsvp.attending,
         mealChoice: rsvp.meal_choice,
@@ -91,11 +92,13 @@ export async function POST(request: NextRequest) {
       },
       guests: formattedGuests,
       existingRsvps: rsvpMap,
-      partyExtras: partyExtras ? {
-        songRequest: partyExtras.song_request,
-        recipeTitle: partyExtras.recipe_title,
-        recipeText: partyExtras.recipe_text,
-      } : null,
+      partyExtras: partyExtras
+        ? {
+            songRequest: partyExtras.song_request,
+            recipeTitle: partyExtras.recipe_title,
+            recipeText: partyExtras.recipe_text,
+          }
+        : null,
     });
   } catch (error) {
     console.error('Error in party login:', error);

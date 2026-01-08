@@ -9,7 +9,7 @@ export async function GET() {
         *,
         guests (*)
       `)
-      .order('party_id', { ascending: true });
+      .order('id', { ascending: true });
 
     if (error) throw error;
 
@@ -97,8 +97,8 @@ export async function POST(request: NextRequest) {
             .from('guests')
             .insert({
               party_id: party.party_id,
-              first_name: 'Guest',
-              last_name: 'TBC',
+              first_name: guest.first_name || 'Guest',
+              last_name: guest.last_name ||'TBC',
               is_plus_one: true,
               can_bring_plus_one: false,
               plus_one_for: mainGuestId,

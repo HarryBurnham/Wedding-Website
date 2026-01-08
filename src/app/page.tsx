@@ -122,7 +122,7 @@ export default function Home() {
               href="/venue"
               className="inline-block mt-3 text-sm text-burgundy-700 hover:text-burgundy-900 transition-colors underline"
               >
-                View venue & schedule
+                View Full Schedule
               </Link>
             </div>
 

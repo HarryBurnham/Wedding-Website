@@ -121,7 +121,7 @@ export default function AdminRSVPs() {
           <p className="text-sm text-gray-500">Not Attending</p>
         </div>
         <div className="bg-white p-4 rounded-lg shadow-sm text-center">
-          <p className="text-3xl font-display text-amber-600">{rsvps.filter(r => !r.hasResponded).length}</p>
+          <p className="text-3xl font-display text-amber-600">{rsvps.reduce((sum, r) => sum + r.guests.filter(g => g.attending === null).length, 0)}</p>
           <p className="text-sm text-gray-500">Pending</p>
         </div>
       </div>

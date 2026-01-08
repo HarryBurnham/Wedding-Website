@@ -4,36 +4,43 @@ import { useState, useEffect } from 'react';
 import { Document, Packer, Paragraph, TextRun } from 'docx';
 import { saveAs } from 'file-saver';
 
-interface Recipe {
+interface PartyExtra {
   id: number;
   partyId: number;
   partyName: string;
-  recipeTitle: string;
-  recipeText: string;
+  recipeTitle: string | null;
+  recipeText: string | null;
   songRequest: string | null;
   submittedAt: string;
 }
 
 export default function AdminRecipes() {
-  const [recipes, setRecipes] = useState<Recipe[]>([]);
+  const [partyExtras, setPartyExtras] = useState<PartyExtra[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
+  const [selectedRecipe, setSelectedRecipe] = useState<PartyExtra | null>(null);
+  const [activeTab, setActiveTab] = useState<'recipes' | 'songs'>('recipes');
 
   useEffect(() => {
-    fetchRecipes();
+    fetchData();
   }, []);
 
-  const fetchRecipes = async () => {
+  const fetchData = async () => {
     try {
       const response = await fetch('/api/admin/recipes');
       const data = await response.json();
-      setRecipes(data.recipes || []);
+      setPartyExtras(data.recipes || []);
     } catch (error) {
-      console.error('Error fetching recipes:', error);
+      console.error('Error fetching data:', error);
     } finally {
       setLoading(false);
     }
   };
+
+  // Filter recipes (has recipe text)
+  const recipes = partyExtras.filter(p => p.recipeText && p.recipeText.trim() !== '');
+  
+  // Filter songs (has song request)
+  const songs = partyExtras.filter(p => p.songRequest && p.songRequest.trim() !== '');
 
   // Export recipes to Word
   const exportRecipesToWord = () => {
@@ -62,11 +69,11 @@ export default function AdminRecipes() {
 
   // Export song requests to CSV
   const exportSongRequestsToCsv = () => {
-    if (!recipes.length) return;
+    if (!songs.length) return;
 
     const rows = [['Guest', 'Song Request']];
-    recipes.forEach(recipe => {
-      if (recipe.songRequest) rows.push([recipe.partyName, recipe.songRequest]);
+    songs.forEach(song => {
+      rows.push([song.partyName, song.songRequest || '']);
     });
 
     const csv = rows.map(r => r.map(c => `"${c}"`).join(',')).join('\n');
@@ -78,84 +85,124 @@ export default function AdminRecipes() {
     a.click();
   };
 
-  // Separate songs from recipes
-  const songs = recipes.filter(r => r.songRequest);
-
   return (
-    <div className="space-y-12">
-      {/* Header with buttons */}
+    <div>
+      {/* Header */}
       <div className="flex items-center justify-between mb-8">
-        <h1 className="text-3xl font-display text-gray-900">Recipe & Song Collection</h1>
-        <div className="flex items-center gap-4">
-          <span className="text-gray-500">{recipes.length} recipes submitted</span>
-          {recipes.length > 0 && (
-            <>
-              <button
-                onClick={exportRecipesToWord}
-                className="px-4 py-2 text-sm border border-gray-300 rounded hover:bg-gray-50"
-              >
-                Export Recipes (Word)
-              </button>
-              <button
-                onClick={exportSongRequestsToCsv}
-                className="px-4 py-2 text-sm border border-gray-300 rounded hover:bg-gray-50"
-              >
-                Export Song Requests (CSV)
-              </button>
-            </>
-          )}
-        </div>
+        <h1 className="text-3xl font-display text-gray-900">Recipes & Songs</h1>
       </div>
 
-      {/* Loading / empty states */}
+      {/* Tabs */}
+      <div className="flex gap-2 mb-8">
+        <button
+          onClick={() => setActiveTab('recipes')}
+          className={`px-6 py-3 rounded-lg font-medium transition-colors ${
+            activeTab === 'recipes'
+              ? 'bg-burgundy-900 text-white'
+              : 'bg-white text-gray-700 hover:bg-gray-50'
+          }`}
+        >
+          📖 Recipes ({recipes.length})
+        </button>
+        <button
+          onClick={() => setActiveTab('songs')}
+          className={`px-6 py-3 rounded-lg font-medium transition-colors ${
+            activeTab === 'songs'
+              ? 'bg-burgundy-900 text-white'
+              : 'bg-white text-gray-700 hover:bg-gray-50'
+          }`}
+        >
+          🎵 Songs ({songs.length})
+        </button>
+      </div>
+
       {loading ? (
         <div className="bg-white p-8 rounded-lg shadow-sm text-center text-gray-500">Loading...</div>
-      ) : recipes.length === 0 ? (
-        <div className="bg-white p-8 rounded-lg shadow-sm text-center text-gray-500">
-          No recipes submitted yet.
-        </div>
       ) : (
         <>
-          {/* Recipes Grid */}
-          <div>
-            <h2 className="text-2xl font-display text-gray-900 mb-4">Recipes</h2>
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {recipes.map(recipe => (
-                <div
-                  key={recipe.id}
-                  className="bg-white p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow cursor-pointer"
-                  onClick={() => setSelectedRecipe(recipe)}
-                >
-                  <h3 className="text-lg font-display text-burgundy-900 mb-1">
-                    {recipe.recipeTitle || 'Untitled Recipe'}
-                  </h3>
-                  <p className="text-sm text-gray-500 mb-3">From: {recipe.partyName}</p>
-                  <p className="text-gray-600 text-sm line-clamp-3">{recipe.recipeText}</p>
-                  {recipe.songRequest && (
-                    <p className="text-xs text-gray-400 mt-2 italic">Song Request: {recipe.songRequest}</p>
-                  )}
-                  <p className="text-xs text-gray-400 mt-4">
-                    {new Date(recipe.submittedAt).toLocaleDateString('en-GB', {
-                      day: 'numeric', month: 'short', year: 'numeric',
-                    })}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Songs List */}
-          {songs.length > 0 && (
+          {/* Recipes Tab */}
+          {activeTab === 'recipes' && (
             <div>
-              <h2 className="text-2xl font-display text-gray-900 mb-4">Song Requests</h2>
-              <ul className="bg-white p-6 rounded-lg shadow-sm space-y-2">
-                {songs.map(song => (
-                  <li key={song.id} className="flex justify-between items-center p-2 border-b last:border-b-0">
-                    <span className="font-medium">{song.partyName}</span>
-                    <span className="italic text-gray-600">{song.songRequest}</span>
-                  </li>
-                ))}
-              </ul>
+              <div className="flex items-center justify-between mb-6">
+                <p className="text-gray-500">{recipes.length} recipe{recipes.length !== 1 ? 's' : ''} submitted</p>
+                {recipes.length > 0 && (
+                  <button
+                    onClick={exportRecipesToWord}
+                    className="px-4 py-2 text-sm border border-gray-300 rounded hover:bg-gray-50"
+                  >
+                    Export to Word
+                  </button>
+                )}
+              </div>
+
+              {recipes.length === 0 ? (
+                <div className="bg-white p-8 rounded-lg shadow-sm text-center text-gray-500">
+                  No recipes submitted yet.
+                </div>
+              ) : (
+                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {recipes.map(recipe => (
+                    <div
+                      key={recipe.id}
+                      className="bg-white p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow cursor-pointer"
+                      onClick={() => setSelectedRecipe(recipe)}
+                    >
+                      <h3 className="text-lg font-display text-burgundy-900 mb-1">
+                        {recipe.recipeTitle || 'Untitled Recipe'}
+                      </h3>
+                      <p className="text-sm text-gray-500 mb-3">From: {recipe.partyName}</p>
+                      <p className="text-gray-600 text-sm line-clamp-3">{recipe.recipeText}</p>
+                      <p className="text-xs text-gray-400 mt-4">
+                        {new Date(recipe.submittedAt).toLocaleDateString('en-GB', {
+                          day: 'numeric', month: 'short', year: 'numeric',
+                        })}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Songs Tab */}
+          {activeTab === 'songs' && (
+            <div>
+              <div className="flex items-center justify-between mb-6">
+                <p className="text-gray-500">{songs.length} song{songs.length !== 1 ? 's' : ''} requested</p>
+                {songs.length > 0 && (
+                  <button
+                    onClick={exportSongRequestsToCsv}
+                    className="px-4 py-2 text-sm border border-gray-300 rounded hover:bg-gray-50"
+                  >
+                    Export to CSV
+                  </button>
+                )}
+              </div>
+
+              {songs.length === 0 ? (
+                <div className="bg-white p-8 rounded-lg shadow-sm text-center text-gray-500">
+                  No song requests yet.
+                </div>
+              ) : (
+                <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+                  <table className="w-full">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="px-6 py-3 text-left text-sm font-medium text-gray-500">Guest</th>
+                        <th className="px-6 py-3 text-left text-sm font-medium text-gray-500">Song Request</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100">
+                      {songs.map(song => (
+                        <tr key={song.id} className="hover:bg-gray-50">
+                          <td className="px-6 py-4 font-medium text-gray-900">{song.partyName}</td>
+                          <td className="px-6 py-4 text-gray-600">{song.songRequest}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </div>
           )}
         </>
@@ -173,7 +220,9 @@ export default function AdminRecipes() {
           >
             <div className="p-6 border-b flex items-center justify-between">
               <div>
-                <h2 className="text-2xl font-display text-gray-900">{selectedRecipe.recipeTitle || 'Untitled Recipe'}</h2>
+                <h2 className="text-2xl font-display text-gray-900">
+                  {selectedRecipe.recipeTitle || 'Untitled Recipe'}
+                </h2>
                 <p className="text-sm text-gray-500">From: {selectedRecipe.partyName}</p>
               </div>
               <button onClick={() => setSelectedRecipe(null)} className="text-gray-400 hover:text-gray-600">
@@ -183,10 +232,9 @@ export default function AdminRecipes() {
               </button>
             </div>
             <div className="p-6">
-              <div className="bg-gray-50 p-4 rounded whitespace-pre-wrap text-gray-700">{selectedRecipe.recipeText}</div>
-              {selectedRecipe.songRequest && (
-                <p className="mt-4 italic text-gray-500">Song Request: {selectedRecipe.songRequest}</p>
-              )}
+              <div className="bg-gray-50 p-4 rounded whitespace-pre-wrap text-gray-700">
+                {selectedRecipe.recipeText}
+              </div>
             </div>
           </div>
         </div>

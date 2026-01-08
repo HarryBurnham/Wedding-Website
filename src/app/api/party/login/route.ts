@@ -6,6 +6,12 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { party_name, password } = body;
 
+    console.log('Trying login with:', {
+      party_name: party_name.trim(),
+      password,
+    });
+
+
     if (!party_name || !password) {
       return NextResponse.json(
         { error: 'Party name and password are required' },
@@ -17,9 +23,11 @@ export async function POST(request: NextRequest) {
     const { data: party, error: partyError } = await supabase
       .from('parties')
       .select('*')
-      .ilike('party_name', party_name.trim())
+      .eq('party_name', party_name.trim())
       .eq('password', password)
       .single();
+
+    console.log('Supabase party query result:', party, partyError);
 
     if (partyError || !party) {
       return NextResponse.json(

@@ -93,7 +93,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       party: {
-        partyId: party.party_id,
+        partyId: party.id,
         partyName: party.party_name,
         invitedToCeremony: party.invited_to_ceremony,
         invitedToReception: party.invited_to_reception,

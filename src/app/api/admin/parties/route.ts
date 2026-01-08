@@ -14,7 +14,7 @@ export async function GET() {
     if (error) throw error;
 
     const formattedParties = parties?.map(party => ({
-      partyId: party.party_id,
+      partyId: party.id,
       partyName: party.party_name,
       password: party.password,
       invitedToCeremony: party.invited_to_ceremony,
@@ -71,7 +71,7 @@ export async function POST(request: NextRequest) {
         const { data: insertedGuest, error: guestError } = await supabase
           .from('guests')
           .insert({
-            party_id: party.party_id,
+            party_id: party.id,
             first_name: guest.first_name,
             last_name: guest.last_name,
             is_plus_one: false,
@@ -96,7 +96,7 @@ export async function POST(request: NextRequest) {
           const { error: plusOneError } = await supabase
             .from('guests')
             .insert({
-              party_id: party.party_id,
+              party_id: party.id,
               first_name: guest.first_name || 'Guest',
               last_name: guest.last_name ||'TBC',
               is_plus_one: true,
@@ -113,7 +113,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ 
       party: {
-        partyId: party.party_id,
+        partyId: party.id,
         partyName: party.party_name,
       }
     });

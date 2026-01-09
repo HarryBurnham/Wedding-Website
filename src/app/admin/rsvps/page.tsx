@@ -9,6 +9,8 @@ interface GuestDetail {
   isPlusOne: boolean;
   canBringPlusOne: boolean;
   plusOneFor: number | null;
+  invitedToCeremony: boolean;
+  invitedToReception: boolean;
   attending: boolean | null;
   mealChoice: string | null;
   dietaryRequirements: string | null;
@@ -22,11 +24,12 @@ interface PartyRSVP {
   partyId: number;
   partyName: string;
   invitationType: string;
-  invitedToCeremony: boolean;
-  invitedToReception: boolean;
+  hasAllDayGuests: boolean;
+  hasEveningGuests: boolean;
   hasResponded: boolean;
   attendingCount: number;
   notAttendingCount: number;
+  pendingCount: number;
   guests: GuestDetail[];
   songRequest: string | null;
   recipeTitle: string | null;
@@ -58,24 +61,25 @@ export default function AdminRSVPs() {
     if (filter === 'all') return true;
     if (filter === 'responded') return rsvp.hasResponded;
     if (filter === 'pending') return !rsvp.hasResponded;
-    if (filter === 'allday') return rsvp.invitedToCeremony;
-    if (filter === 'evening') return !rsvp.invitedToCeremony;
+    if (filter === 'allday') return rsvp.hasAllDayGuests;
+    if (filter === 'evening') return rsvp.hasEveningGuests;
     return true;
   });
 
   const totalAttending = rsvps.reduce((sum, r) => sum + r.attendingCount, 0);
   const totalNotAttending = rsvps.reduce((sum, r) => sum + r.notAttendingCount, 0);
+  const totalPending = rsvps.reduce((sum, r) => sum + r.pendingCount, 0);
 
   const exportRSVPs = () => {
-    const headers = ['Party', 'Type', 'Guest Name', 'Plus One?', 'Attending', 'Meal', 'Dietary', 'Song Request'];
+    const headers = ['Party', 'Guest Name', 'Invitation Type', 'Plus One?', 'Attending', 'Meal', 'Dietary', 'Song Request'];
     const rows: string[][] = [];
 
     rsvps.forEach(party => {
       party.guests.forEach(guest => {
         rows.push([
           party.partyName,
-          party.invitationType,
           guest.displayName,
+          guest.invitedToCeremony ? 'All Day' : 'Evening Only',
           guest.isPlusOne ? 'Yes' : 'No',
           guest.attending === true ? 'Yes' : guest.attending === false ? 'No' : 'Pending',
           guest.mealChoice || '',
@@ -121,7 +125,7 @@ export default function AdminRSVPs() {
           <p className="text-sm text-gray-500">Not Attending</p>
         </div>
         <div className="bg-white p-4 rounded-lg shadow-sm text-center">
-          <p className="text-3xl font-display text-amber-600">{rsvps.reduce((sum, r) => sum + r.guests.filter(g => g.attending === null).length, 0)}</p>
+          <p className="text-3xl font-display text-amber-600">{totalPending}</p>
           <p className="text-sm text-gray-500">Pending</p>
         </div>
       </div>
@@ -164,11 +168,16 @@ export default function AdminRSVPs() {
                   <div>
                     <h3 className="font-medium text-gray-900">{party.partyName}</h3>
                     <div className="flex items-center gap-2 mt-1">
-                      <span className={`text-xs px-2 py-0.5 rounded ${
-                        party.invitedToCeremony ? 'bg-green-100 text-green-700' : 'bg-purple-100 text-purple-700'
-                      }`}>
-                        {party.invitationType}
-                      </span>
+                      {party.hasAllDayGuests && (
+                        <span className="text-xs px-2 py-0.5 rounded bg-green-100 text-green-700">
+                          🌅 All Day
+                        </span>
+                      )}
+                      {party.hasEveningGuests && (
+                        <span className="text-xs px-2 py-0.5 rounded bg-purple-100 text-purple-700">
+                          🌙 Evening
+                        </span>
+                      )}
                       {party.hasResponded ? (
                         <span className="text-xs text-green-600">✓ Responded</span>
                       ) : (
@@ -176,10 +185,16 @@ export default function AdminRSVPs() {
                       )}
                     </div>
                   </div>
-                  <div className="text-right">
-                    <span className="text-green-600 font-medium">{party.attendingCount}</span>
-                    <span className="text-gray-400 mx-1">/</span>
-                    <span className="text-red-600 font-medium">{party.notAttendingCount}</span>
+                  <div className="text-right text-sm">
+                    <span className="text-green-600 font-medium">{party.attendingCount} attending</span>
+                    <span className="text-gray-400 mx-1">•</span>
+                    <span className="text-red-600 font-medium">{party.notAttendingCount} not attending</span>
+                    {party.pendingCount > 0 && (
+                      <>
+                        <span className="text-gray-400 mx-1">•</span>
+                        <span className="text-amber-600 font-medium">{party.pendingCount} pending</span>
+                      </>
+                    )}
                   </div>
                 </div>
               </div>
@@ -196,18 +211,23 @@ export default function AdminRSVPs() {
                       }`}
                     >
                       <div className="flex items-center justify-between">
-                        <div>
+                        <div className="flex items-center gap-2">
                           <span className="font-medium">{guest.displayName}</span>
                           {guest.isPlusOne && (
-                            <span className="ml-2 text-xs text-purple-600">(+1)</span>
+                            <span className="text-xs px-1.5 py-0.5 bg-purple-100 text-purple-600 rounded">+1</span>
                           )}
+                          <span className={`text-xs px-1.5 py-0.5 rounded ${
+                            guest.invitedToCeremony ? 'bg-green-100 text-green-700' : 'bg-purple-100 text-purple-700'
+                          }`}>
+                            {guest.invitedToCeremony ? '🌅' : '🌙'}
+                          </span>
                         </div>
                         <span className={`text-sm ${
                           guest.attending === true ? 'text-green-600' : 
-                          guest.attending === false ? 'text-red-600' : 'text-gray-400'
+                          guest.attending === false ? 'text-red-600' : 'text-amber-500'
                         }`}>
                           {guest.attending === true ? '✓ Attending' : 
-                           guest.attending === false ? '✗ Not Attending' : 'Pending'}
+                           guest.attending === false ? '✗ Not Attending' : '⏳ Pending'}
                         </span>
                       </div>
                       {guest.attending && (guest.mealChoice || guest.dietaryRequirements) && (
@@ -240,4 +260,3 @@ export default function AdminRSVPs() {
     </div>
   );
 }
-

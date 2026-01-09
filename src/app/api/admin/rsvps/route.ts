@@ -1,11 +1,12 @@
 import { NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase';
+import { createAdminClient } from '@/lib/supabase';
 
-// Disable caching for this route
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {
+    const supabase = createAdminClient();
+
     // Get all parties
     const { data: parties, error: partiesError } = await supabase
       .from('parties')
@@ -75,6 +76,8 @@ export async function GET() {
           isPlusOne: guest.is_plus_one,
           canBringPlusOne: guest.can_bring_plus_one,
           plusOneFor: guest.plus_one_for,
+          invitedToCeremony: guest.invited_to_ceremony,
+          invitedToReception: guest.invited_to_reception,
           // RSVP data
           attending: rsvp?.attending ?? null,
           mealChoice: rsvp?.meal_choice || null,
@@ -89,19 +92,29 @@ export async function GET() {
         };
       });
 
-      // Count attending
+      // Count attending/not attending/pending
       const attendingCount = guestDetails.filter(g => g.attending === true).length;
       const notAttendingCount = guestDetails.filter(g => g.attending === false).length;
+      const pendingCount = guestDetails.filter(g => g.attending === null).length;
+
+      // Determine party invitation type based on guests (for display purposes)
+      const hasAllDayGuests = partyGuests.some(g => g.invited_to_ceremony);
+      const hasEveningGuests = partyGuests.some(g => !g.invited_to_ceremony);
 
       return {
         partyId: party.id,
         partyName: party.party_name,
-        invitationType: party.invited_to_ceremony ? 'All Day' : 'Evening Only',
-        invitedToCeremony: party.invited_to_ceremony,
-        invitedToReception: party.invited_to_reception,
+        invitationType: hasAllDayGuests && hasEveningGuests 
+          ? 'Mixed' 
+          : hasAllDayGuests 
+            ? 'All Day' 
+            : 'Evening Only',
+        hasAllDayGuests,
+        hasEveningGuests,
         hasResponded,
         attendingCount,
         notAttendingCount,
+        pendingCount,
         guests: guestDetails,
         songRequest: partyExtras?.song_request || null,
         recipeTitle: partyExtras?.recipe_title || null,
@@ -115,4 +128,3 @@ export async function GET() {
     return NextResponse.json({ rsvps: [], error: String(error) }, { status: 500 });
   }
 }
-

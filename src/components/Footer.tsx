@@ -54,7 +54,8 @@ export default function Footer() {
 
         {/* Bottom */}
         <div className="mt-12 pt-8 border-t border-burgundy-800 text-center text-cream-400 text-sm">
-          <p>Made with love for our special day</p>
+          <p>Made with love for our special day by Harry Burnham </p>
+          <p>© 2025 Harry & Adia. All rights reserved.</p>
         </div>
       </div>
     </footer>

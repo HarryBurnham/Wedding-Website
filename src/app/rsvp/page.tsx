@@ -7,6 +7,10 @@ import EditableField from '@/components/EditableField';
 import { WEDDING_CONFIG } from '@/lib/constants';
 import { motion, AnimatePresence } from 'framer-motion';
 
+export const metadata = {
+  title: 'Harry Burnham & Adia Shane | RSVP',
+};
+
 interface Guest {
   id: number;
   firstName: string;

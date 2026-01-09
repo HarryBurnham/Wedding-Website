@@ -5,6 +5,10 @@ import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
 import { motion, AnimatePresence } from 'framer-motion';
 
+export const metadata = {
+  title: 'Harry Burnham & Adia Shane | FAQ',
+};
+
 interface FAQItem {
   question: string;
   answer: string;

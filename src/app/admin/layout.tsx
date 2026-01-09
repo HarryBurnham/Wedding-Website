@@ -5,6 +5,10 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { ADMIN_NAV_LINKS } from '@/lib/constants';
 
+export const metadata = {
+  title: 'Harry Burnham & Adia Shane | Admin',
+};
+
 export default function AdminLayout({
   children,
 }: {

@@ -3,6 +3,10 @@ import Footer from '@/components/Footer';
 import VenuePhotos from '@/components/VenuePhotos';
 import { WEDDING_CONFIG } from '@/lib/constants';
 
+export const metadata = {
+  title: 'Harry Burnham & Adia Shane | Venue',
+};
+
 export default function Venue() {
   const weddingDate = WEDDING_CONFIG.weddingDate.toLocaleDateString('en-GB', {
     weekday: 'long',

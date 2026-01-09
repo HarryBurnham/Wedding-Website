@@ -2,6 +2,10 @@
 
 import { useState, useEffect } from 'react';
 
+export const metadata = {
+  title: 'Harry Burnham & Adia Shane | Admin',
+};
+
 interface GuestDetail {
   id: number;
   firstName: string;

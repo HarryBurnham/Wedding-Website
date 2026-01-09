@@ -5,6 +5,10 @@ import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
 import { motion } from 'framer-motion';
 
+export const metadata = {
+  title: 'Harry Burnham & Adia Shane | Contact',
+};
+
 export default function Contact() {
   const [formData, setFormData] = useState({
     name: '',

@@ -2,6 +2,10 @@ import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
 import { WEDDING_CONFIG } from '@/lib/constants';
 
+export const metadata = {
+  title: 'Harry Burnham & Adia Shane | Accomodation & Travel',
+};
+
 export default function TravelAccommodation() {
   return (
     <main className="min-h-screen">

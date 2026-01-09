@@ -11,7 +11,6 @@ export async function POST(request: NextRequest) {
       password,
     });
 
-
     if (!party_name || !password) {
       return NextResponse.json(
         { error: 'Party name and password are required' },
@@ -69,7 +68,7 @@ export async function POST(request: NextRequest) {
       partyExtras = null;
     }
 
-    // Format guests
+    // Format guests with individual invitation types
     const formattedGuests = guests?.map(guest => ({
       id: guest.id,
       firstName: guest.first_name,
@@ -77,6 +76,8 @@ export async function POST(request: NextRequest) {
       isPlusOne: guest.is_plus_one,
       canBringPlusOne: guest.can_bring_plus_one,
       plusOneFor: guest.plus_one_for,
+      invitedToCeremony: guest.invited_to_ceremony,
+      invitedToReception: guest.invited_to_reception,
     }));
 
     // Format existing RSVPs as a map
@@ -95,8 +96,6 @@ export async function POST(request: NextRequest) {
       party: {
         partyId: party.id,
         partyName: party.party_name,
-        invitedToCeremony: party.invited_to_ceremony,
-        invitedToReception: party.invited_to_reception,
       },
       guests: formattedGuests,
       existingRsvps: rsvpMap,

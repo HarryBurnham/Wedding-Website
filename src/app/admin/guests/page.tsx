@@ -9,15 +9,15 @@ interface Guest {
   isPlusOne: boolean;
   canBringPlusOne: boolean;
   plusOneFor: number | null;
+  invitedToCeremony: boolean;
+  invitedToReception: boolean;
+  invitationType: string;
 }
 
 interface Party {
   partyId: number;
   partyName: string;
   password: string;
-  invitedToCeremony: boolean;
-  invitedToReception: boolean;
-  invitationType: string;
   guests: Guest[];
   createdAt: string;
 }
@@ -31,9 +31,7 @@ export default function AdminGuests() {
   const [newParty, setNewParty] = useState({
     party_name: '',
     password: '',
-    invited_to_ceremony: true,
-    invited_to_reception: true,
-    guests: [{ first_name: '', last_name: '', can_bring_plus_one: false }],
+    guests: [{ first_name: '', last_name: '', can_bring_plus_one: false, invited_to_ceremony: true }],
   });
 
   useEffect(() => {
@@ -66,9 +64,7 @@ export default function AdminGuests() {
         setNewParty({
           party_name: '',
           password: '',
-          invited_to_ceremony: true,
-          invited_to_reception: true,
-          guests: [{ first_name: '', last_name: '', can_bring_plus_one: false }],
+          guests: [{ first_name: '', last_name: '', can_bring_plus_one: false, invited_to_ceremony: true }],
         });
         fetchParties();
       }
@@ -80,7 +76,7 @@ export default function AdminGuests() {
   const addGuestField = () => {
     setNewParty(prev => ({
       ...prev,
-      guests: [...prev.guests, { first_name: '', last_name: '', can_bring_plus_one: false }],
+      guests: [...prev.guests, { first_name: '', last_name: '', can_bring_plus_one: false, invited_to_ceremony: true }],
     }));
   };
 
@@ -99,13 +95,14 @@ export default function AdminGuests() {
   };
 
   const exportParties = () => {
-    const rows = [['Party Name', 'Password', 'Type', 'Guest Name', 'Can Bring +1']];
+    const rows = [['Party Name', 'Password', 'Guest Name', 'Invitation Type', 'Can Bring +1']];
     parties.forEach(party => {
       party.guests.forEach(guest => {
         rows.push([
           party.partyName,
-          party.invitationType,
+          party.password,
           `${guest.firstName} ${guest.lastName}`,
+          guest.invitationType,
           guest.canBringPlusOne ? 'Yes' : 'No',
         ]);
       });
@@ -121,13 +118,17 @@ export default function AdminGuests() {
   };
 
   const totalGuests = parties.reduce((sum, p) => sum + p.guests.length, 0);
+  const allDayGuests = parties.reduce((sum, p) => sum + p.guests.filter(g => g.invitedToCeremony).length, 0);
+  const eveningOnlyGuests = parties.reduce((sum, p) => sum + p.guests.filter(g => !g.invitedToCeremony).length, 0);
 
   return (
     <div>
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-3xl font-display text-gray-900">Parties & Guests</h1>
-          <p className="text-gray-500 mt-1">{parties.length} parties • {totalGuests} guests</p>
+          <p className="text-gray-500 mt-1">
+            {parties.length} parties • {totalGuests} guests ({allDayGuests} all day, {eveningOnlyGuests} evening only)
+          </p>
         </div>
         <div className="flex gap-4">
           <button onClick={exportParties} className="px-4 py-2 text-sm border border-gray-300 rounded hover:bg-gray-50">
@@ -169,50 +170,33 @@ export default function AdminGuests() {
               </div>
             </div>
 
-            {/* Invitation Type */}
-            <div className="mb-6">
-              <label className="block text-sm text-gray-600 mb-2">Invitation Type</label>
-              <div className="flex gap-4">
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="radio"
-                    name="invitationType"
-                    checked={newParty.invited_to_ceremony}
-                    onChange={() => setNewParty(prev => ({ ...prev, invited_to_ceremony: true }))}
-                  />
-                  <span className="text-sm">🌅 All Day (Ceremony + Reception)</span>
-                </label>
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="radio"
-                    name="invitationType"
-                    checked={!newParty.invited_to_ceremony}
-                    onChange={() => setNewParty(prev => ({ ...prev, invited_to_ceremony: false }))}
-                  />
-                  <span className="text-sm">🌙 Evening Only (Reception)</span>
-                </label>
-              </div>
-            </div>
-
-            {/* Guests */}
+            {/* Guests with individual invitation types */}
             <div className="mb-4">
               <label className="block text-sm text-gray-600 mb-2">Guests in this Party</label>
               {newParty.guests.map((guest, index) => (
-                <div key={index} className="flex gap-2 mb-2 items-center">
+                <div key={index} className="flex gap-2 mb-2 items-center flex-wrap">
                   <input
                     type="text"
                     value={guest.first_name}
                     onChange={(e) => updateGuestField(index, 'first_name', e.target.value)}
                     placeholder="First name"
-                    className="flex-1 px-3 py-2 border rounded"
+                    className="flex-1 min-w-[120px] px-3 py-2 border rounded"
                   />
                   <input
                     type="text"
                     value={guest.last_name}
                     onChange={(e) => updateGuestField(index, 'last_name', e.target.value)}
                     placeholder="Last name"
-                    className="flex-1 px-3 py-2 border rounded"
+                    className="flex-1 min-w-[120px] px-3 py-2 border rounded"
                   />
+                  <select
+                    value={guest.invited_to_ceremony ? 'all-day' : 'evening'}
+                    onChange={(e) => updateGuestField(index, 'invited_to_ceremony', e.target.value === 'all-day')}
+                    className="px-3 py-2 border rounded text-sm"
+                  >
+                    <option value="all-day">🌅 All Day</option>
+                    <option value="evening">🌙 Evening</option>
+                  </select>
                   <label className="flex items-center gap-1 px-3 whitespace-nowrap">
                     <input
                       type="checkbox"
@@ -254,57 +238,72 @@ export default function AdminGuests() {
             No parties yet. Add your first party to get started.
           </div>
         ) : (
-          parties.map(party => (
-            <div key={party.partyId} className="bg-white rounded-lg shadow-sm overflow-hidden">
-              <div
-                className="p-4 flex items-center justify-between cursor-pointer hover:bg-gray-50"
-                onClick={() => setExpandedParty(expandedParty === party.partyId ? null : party.partyId)}
-              >
-                <div className="flex items-center gap-4">
-                  <div>
-                    <h3 className="font-medium text-gray-900">{party.partyName}</h3>
-                    <p className="text-sm text-gray-500">
-                      {party.guests.length} guest{party.guests.length !== 1 ? 's' : ''} • 
-                      Password: <span className="font-mono">{party.password}</span>
-                    </p>
+          parties.map(party => {
+            const partyAllDay = party.guests.filter(g => g.invitedToCeremony).length;
+            const partyEvening = party.guests.filter(g => !g.invitedToCeremony).length;
+            
+            return (
+              <div key={party.partyId} className="bg-white rounded-lg shadow-sm overflow-hidden">
+                <div
+                  className="p-4 flex items-center justify-between cursor-pointer hover:bg-gray-50"
+                  onClick={() => setExpandedParty(expandedParty === party.partyId ? null : party.partyId)}
+                >
+                  <div className="flex items-center gap-4">
+                    <div>
+                      <h3 className="font-medium text-gray-900">{party.partyName}</h3>
+                      <p className="text-sm text-gray-500">
+                        {party.guests.length} guest{party.guests.length !== 1 ? 's' : ''} • 
+                        Password: <span className="font-mono">{party.password}</span>
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {partyAllDay > 0 && (
+                      <span className="px-2 py-1 text-xs rounded bg-green-100 text-green-700">
+                        {partyAllDay} All Day
+                      </span>
+                    )}
+                    {partyEvening > 0 && (
+                      <span className="px-2 py-1 text-xs rounded bg-purple-100 text-purple-700">
+                        {partyEvening} Evening
+                      </span>
+                    )}
+                    <svg
+                      className={`w-5 h-5 text-gray-400 transition-transform ${expandedParty === party.partyId ? 'rotate-180' : ''}`}
+                      fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
                   </div>
                 </div>
-                <div className="flex items-center gap-4">
-                  <span className={`px-2 py-1 text-xs rounded ${
-                    party.invitedToCeremony ? 'bg-green-100 text-green-700' : 'bg-purple-100 text-purple-700'
-                  }`}>
-                    {party.invitationType}
-                  </span>
-                  <svg
-                    className={`w-5 h-5 text-gray-400 transition-transform ${expandedParty === party.partyId ? 'rotate-180' : ''}`}
-                    fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                  >
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
-                </div>
-              </div>
 
-              {expandedParty === party.partyId && (
-                <div className="border-t px-4 py-4 bg-gray-50">
-                  <div className="space-y-2">
-                    {party.guests.map(guest => (
-                      <div key={guest.id} className="flex items-center justify-between py-2 px-3 bg-white rounded">
-                        <div className="flex items-center gap-3">
-                          <span>{guest.firstName} {guest.lastName}</span>
-                          {guest.isPlusOne && (
-                            <span className="px-2 py-0.5 bg-purple-100 text-purple-700 text-xs rounded">+1 Slot</span>
-                          )}
-                          {guest.canBringPlusOne && (
-                            <span className="px-2 py-0.5 bg-blue-100 text-blue-700 text-xs rounded">Can bring +1</span>
-                          )}
+                {expandedParty === party.partyId && (
+                  <div className="border-t px-4 py-4 bg-gray-50">
+                    <div className="space-y-2">
+                      {party.guests.map(guest => (
+                        <div key={guest.id} className="flex items-center justify-between py-2 px-3 bg-white rounded">
+                          <div className="flex items-center gap-3">
+                            <span>{guest.firstName} {guest.lastName}</span>
+                            {guest.isPlusOne && (
+                              <span className="px-2 py-0.5 bg-purple-100 text-purple-700 text-xs rounded">+1 Slot</span>
+                            )}
+                            {guest.canBringPlusOne && (
+                              <span className="px-2 py-0.5 bg-blue-100 text-blue-700 text-xs rounded">Can bring +1</span>
+                            )}
+                          </div>
+                          <span className={`px-2 py-1 text-xs rounded ${
+                            guest.invitedToCeremony ? 'bg-green-100 text-green-700' : 'bg-purple-100 text-purple-700'
+                          }`}>
+                            {guest.invitationType}
+                          </span>
                         </div>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
                   </div>
-                </div>
-              )}
-            </div>
-          ))
+                )}
+              </div>
+            );
+          })
         )}
       </div>
     </div>

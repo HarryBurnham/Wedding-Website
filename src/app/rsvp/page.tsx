@@ -14,13 +14,13 @@ interface Guest {
   isPlusOne: boolean;
   canBringPlusOne: boolean;
   plusOneFor: number | null;
+  invitedToCeremony: boolean;
+  invitedToReception: boolean;
 }
 
 interface Party {
   partyId: number;
   partyName: string;
-  invitedToCeremony: boolean;
-  invitedToReception: boolean;
 }
 
 interface GuestRSVP {
@@ -48,6 +48,17 @@ const PreviouslySavedLabel = () => (
 const GuestOfBadge = ({ mainGuestName }: { mainGuestName: string }) => (
   <span className="text-xs text-purple-600 bg-purple-50 px-2 py-1 rounded-full">
     Guest of {mainGuestName}
+  </span>
+);
+
+// Invitation Type Badge Component
+const InvitationTypeBadge = ({ invitedToCeremony }: { invitedToCeremony: boolean }) => (
+  <span className={`text-xs px-2 py-1 rounded-full ${
+    invitedToCeremony 
+      ? 'bg-green-100 text-green-700' 
+      : 'bg-purple-100 text-purple-700'
+  }`}>
+    {invitedToCeremony ? '🌅 All Day' : '🌙 Evening'}
   </span>
 );
 
@@ -100,6 +111,18 @@ export default function RSVP() {
       return original.attending !== null;
     }
     return !!original[field];
+  };
+
+  // Get invitation type summary for the party
+  const getInvitationSummary = (): { hasAllDay: boolean; hasEveningOnly: boolean; allSame: boolean } => {
+    const mainGuests = guests.filter(g => !g.isPlusOne);
+    const hasAllDay = mainGuests.some(g => g.invitedToCeremony);
+    const hasEveningOnly = mainGuests.some(g => !g.invitedToCeremony);
+    return {
+      hasAllDay,
+      hasEveningOnly,
+      allSame: !(hasAllDay && hasEveningOnly),
+    };
   };
 
   // Handle party login
@@ -475,9 +498,12 @@ export default function RSVP() {
                       return (
                         <div key={guest.id} className="space-y-2">
                           <div className="flex items-center justify-between">
-                            <span className="text-sm text-gray-700">
-                              {guest.firstName} {guest.lastName}
-                            </span>
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm text-gray-700">
+                                {guest.firstName} {guest.lastName}
+                              </span>
+                              <InvitationTypeBadge invitedToCeremony={guest.invitedToCeremony} />
+                            </div>
                             <div className="flex gap-1">
                               <button
                                 type="button"
@@ -587,7 +613,10 @@ export default function RSVP() {
 
                       return (
                         <div key={guest.id} className="flex items-center justify-between text-sm">
-                          <span className="text-gray-700">{guest.firstName} {guest.lastName}</span>
+                          <div className="flex items-center gap-2">
+                            <span className="text-gray-700">{guest.firstName} {guest.lastName}</span>
+                            <InvitationTypeBadge invitedToCeremony={guest.invitedToCeremony} />
+                          </div>
                           <span className={`font-medium ${rsvp?.attending ? 'text-green-600' : 'text-red-600'}`}>
                             {rsvp?.attending ? '✓ Attending' : '✗ Not attending'}
                           </span>
@@ -905,22 +934,51 @@ export default function RSVP() {
                   <h2 className="font-display text-2xl text-burgundy-900 text-center mb-2">
                     {isReturningUser ? `Welcome back, ${party.partyName}!` : `Welcome, ${party.partyName}!`}
                   </h2>
-                  <p className="text-gray-600 text-center">
-                    {isReturningUser 
-                      ? "You can review and update your RSVP below."
-                      : party.invitedToCeremony 
-                        ? "You're invited to join us for the full day celebration."
-                        : "You're invited to join us for the evening reception."}
-                  </p>
-                  <div className="mt-4 text-center">
-                    <span className={`inline-block px-4 py-2 rounded-full text-sm font-medium ${
-                      party.invitedToCeremony 
-                        ? 'bg-green-100 text-green-700' 
-                        : 'bg-purple-100 text-purple-700'
-                    }`}>
-                      {party.invitedToCeremony ? '🌅 All Day Guest' : '🌙 Evening Guest'}
-                    </span>
-                  </div>
+                  
+                  {(() => {
+                    const summary = getInvitationSummary();
+                    if (summary.allSame) {
+                      const isAllDay = summary.hasAllDay;
+                      return (
+                        <>
+                          <p className="text-gray-600 text-center">
+                            {isReturningUser 
+                              ? "You can review and update your RSVP below."
+                              : isAllDay 
+                                ? "You're invited to join us for the full day celebration."
+                                : "You're invited to join us for the evening reception."}
+                          </p>
+                          <div className="mt-4 text-center">
+                            <span className={`inline-block px-4 py-2 rounded-full text-sm font-medium ${
+                              isAllDay 
+                                ? 'bg-green-100 text-green-700' 
+                                : 'bg-purple-100 text-purple-700'
+                            }`}>
+                              {isAllDay ? '🌅 All Day Guests' : '🌙 Evening Guests'}
+                            </span>
+                          </div>
+                        </>
+                      );
+                    } else {
+                      return (
+                        <>
+                          <p className="text-gray-600 text-center">
+                            {isReturningUser 
+                              ? "You can review and update your RSVP below."
+                              : "Some guests are invited for different parts of the day - please see individual invitations below."}
+                          </p>
+                          <div className="mt-4 flex justify-center gap-2">
+                            <span className="inline-block px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">
+                              🌅 All Day
+                            </span>
+                            <span className="inline-block px-3 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-700">
+                              🌙 Evening Only
+                            </span>
+                          </div>
+                        </>
+                      );
+                    }
+                  })()}
                 </div>
 
                 <div className="card mb-8">
@@ -937,10 +995,11 @@ export default function RSVP() {
                         <div key={guest.id} className="border border-burgundy-100 rounded-lg p-4">
                           {/* Main Guest */}
                           <div className="flex items-center justify-between mb-4">
-                            <div className="flex items-center gap-3">
+                            <div className="flex items-center gap-3 flex-wrap">
                               <span className="font-medium text-gray-800">
                                 {guest.firstName} {guest.lastName}
                               </span>
+                              <InvitationTypeBadge invitedToCeremony={guest.invitedToCeremony} />
                               {wasPreFilled(guest.id, 'attending') && (
                                 <PreviouslySavedLabel />
                               )}
@@ -974,11 +1033,12 @@ export default function RSVP() {
                           {/* Plus One Section */}
                           {guest.canBringPlusOne && plusOne && guestRsvp?.attending && (
                             <div className="mt-4 pt-4 border-t border-gray-100">
-                              <div className="flex items-center gap-2 mb-3">
+                              <div className="flex items-center gap-2 mb-3 flex-wrap">
                                 <p className="text-sm text-gray-600">
                                   Would you like to bring a guest?
                                 </p>
                                 <GuestOfBadge mainGuestName={guest.firstName} />
+                                <InvitationTypeBadge invitedToCeremony={plusOne.invitedToCeremony} />
                                 {wasPreFilled(plusOne.id, 'attending') && (
                                   <PreviouslySavedLabel />
                                 )}
@@ -1064,13 +1124,14 @@ export default function RSVP() {
 
                     return (
                       <div key={guest.id} className="card">
-                        <div className="flex items-center gap-3 mb-4">
+                        <div className="flex items-center gap-3 mb-4 flex-wrap">
                           <h3 className="font-display text-lg text-burgundy-900">
                             {displayName}
                           </h3>
                           {guest.isPlusOne && mainGuest && (
                             <GuestOfBadge mainGuestName={mainGuest.firstName} />
                           )}
+                          <InvitationTypeBadge invitedToCeremony={guest.invitedToCeremony} />
                         </div>
 
                         <div className="space-y-4">

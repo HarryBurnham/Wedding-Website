@@ -60,9 +60,6 @@ export async function GET() {
         partyId: party.id,
         partyName: party.party_name,
         password: party.password,
-        invitedToCeremony: party.invited_to_ceremony,
-        invitedToReception: party.invited_to_reception,
-        invitationType: party.invited_to_ceremony ? 'All Day' : 'Evening Only',
         createdAt: party.created_at,
         songRequest: partyExtras?.song_request || '',
         recipeTitle: partyExtras?.recipe_title || '',
@@ -74,6 +71,9 @@ export async function GET() {
           isPlusOne: guest.is_plus_one,
           canBringPlusOne: guest.can_bring_plus_one,
           plusOneFor: guest.plus_one_for,
+          invitedToCeremony: guest.invited_to_ceremony,
+          invitedToReception: guest.invited_to_reception,
+          invitationType: guest.invited_to_ceremony ? 'All Day' : 'Evening Only',
         })),
       };
     });
@@ -89,7 +89,7 @@ export async function POST(request: NextRequest) {
   try {
     const supabase = createAdminClient();
     const body = await request.json();
-    const { party_name, password, invited_to_ceremony, invited_to_reception, guests } = body;
+    const { party_name, password, guests } = body;
 
     // Validate required fields
     if (!party_name || !password) {
@@ -100,14 +100,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'At least one guest is required' }, { status: 400 });
     }
 
-    // 1. Create the party
+    // 1. Create the party (no longer has invitation type)
     const { data: party, error: partyError } = await supabase
       .from('parties')
       .insert({
         party_name,
         password,
-        invited_to_ceremony: invited_to_ceremony ?? true,
-        invited_to_reception: invited_to_reception ?? true,
       })
       .select()
       .single();
@@ -120,12 +118,15 @@ export async function POST(request: NextRequest) {
       throw partyError;
     }
 
-    // 2. Create the guests
+    // 2. Create the guests with individual invitation types
     const guestsToInsert: any[] = [];
     const plusOneGuests: { forIndex: number; guest: any }[] = [];
 
     // First pass: prepare main guests and track plus-ones needed
     guests.forEach((guest: any, index: number) => {
+      const invitedToCeremony = guest.invited_to_ceremony ?? true;
+      const invitedToReception = guest.invited_to_reception ?? true;
+
       guestsToInsert.push({
         party_id: party.id,
         first_name: guest.first_name,
@@ -133,9 +134,11 @@ export async function POST(request: NextRequest) {
         is_plus_one: false,
         can_bring_plus_one: guest.can_bring_plus_one || false,
         plus_one_for: null,
+        invited_to_ceremony: invitedToCeremony,
+        invited_to_reception: invitedToReception,
       });
 
-      // If guest can bring a plus one, we'll create a placeholder plus-one guest
+      // If guest can bring a plus one, create a placeholder with same invitation type
       if (guest.can_bring_plus_one) {
         plusOneGuests.push({
           forIndex: index,
@@ -145,7 +148,9 @@ export async function POST(request: NextRequest) {
             last_name: 'of ' + guest.first_name,
             is_plus_one: true,
             can_bring_plus_one: false,
-            plus_one_for: null, // Will be set after main guests are inserted
+            plus_one_for: null,
+            invited_to_ceremony: invitedToCeremony,
+            invited_to_reception: invitedToReception,
           },
         });
       }
@@ -177,7 +182,6 @@ export async function POST(request: NextRequest) {
 
       if (plusOneError) {
         console.error('Error creating plus-one guests:', plusOneError);
-        // Don't fail the whole request, plus-ones are optional
       }
     }
 

@@ -1,10 +1,12 @@
 import { NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase';
+import { createAdminClient } from '@/lib/supabase';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {
+    const supabase = createAdminClient();
+    
     const { data: messages, error } = await supabase
       .from('contact_messages')
       .select('*')

@@ -42,7 +42,7 @@ export default function AdminGuests() {
 
   const fetchParties = async () => {
     try {
-      const response = await fetch('/api/admin/parties');
+      const response = await fetch('/api/admin/guests');
       const data = await response.json();
       setParties(data.parties || []);
     } catch (error) {
@@ -55,7 +55,7 @@ export default function AdminGuests() {
   const handleAddParty = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const response = await fetch('/api/admin/parties', {
+      const response = await fetch('/api/admin/guests', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newParty),

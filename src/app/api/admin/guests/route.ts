@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase';
 
-export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
@@ -88,11 +87,6 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
-
-    console.log('ADMIN ENV CHECK', {
-    SUPABASE_URL: process.env.SUPABASE_URL?.slice(0, 10),
-    SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY?.slice(0, 10),
-    });
     const supabase = createAdminClient();
     const body = await request.json();
     const { party_name, password, invited_to_ceremony, invited_to_reception, guests } = body;

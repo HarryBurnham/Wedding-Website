@@ -294,7 +294,7 @@ export default function AdminGuests() {
                           <span className={`px-2 py-1 text-xs rounded ${
                             guest.invitedToCeremony ? 'bg-green-100 text-green-700' : 'bg-purple-100 text-purple-700'
                           }`}>
-                            {guest.invitationType}
+                            {guest.invitedToCeremony ? '🌅 All Day' : '🌙 Evening'}
                           </span>
                         </div>
                       ))}

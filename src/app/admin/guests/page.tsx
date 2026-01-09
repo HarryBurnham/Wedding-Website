@@ -27,6 +27,19 @@ export default function AdminGuests() {
   const [loading, setLoading] = useState(true);
   const [showAddParty, setShowAddParty] = useState(false);
   const [expandedParty, setExpandedParty] = useState<number | null>(null);
+  const [editingParty, setEditingParty] = useState<number | null>(null);
+  const [editingGuest, setEditingGuest] = useState<number | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
+
+  // Edit states
+  const [editPartyData, setEditPartyData] = useState<{ party_name: string; password: string }>({ party_name: '', password: '' });
+  const [editGuestData, setEditGuestData] = useState<{ first_name: string; last_name: string; invited_to_ceremony: boolean; can_bring_plus_one: boolean }>({
+    first_name: '',
+    last_name: '',
+    invited_to_ceremony: true,
+    can_bring_plus_one: false,
+  });
 
   const [newParty, setNewParty] = useState({
     party_name: '',
@@ -94,6 +107,187 @@ export default function AdminGuests() {
     }));
   };
 
+  // Edit Party
+  const startEditingParty = (party: Party) => {
+    setEditingParty(party.partyId);
+    setEditPartyData({ party_name: party.partyName, password: party.password });
+    setError('');
+  };
+
+  const cancelEditingParty = () => {
+    setEditingParty(null);
+    setEditPartyData({ party_name: '', password: '' });
+    setError('');
+  };
+
+  const saveParty = async (partyId: number) => {
+    setSaving(true);
+    setError('');
+    try {
+      const response = await fetch(`/api/admin/guests/${partyId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(editPartyData),
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Failed to update party');
+      }
+
+      setEditingParty(null);
+      fetchParties();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to update party');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const deleteParty = async (partyId: number) => {
+    if (!confirm('Are you sure you want to delete this party and all its guests? This cannot be undone.')) {
+      return;
+    }
+
+    setSaving(true);
+    setError('');
+    try {
+      const response = await fetch(`/api/admin/guests/${partyId}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Failed to delete party');
+      }
+
+      setExpandedParty(null);
+      fetchParties();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to delete party');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // Edit Guest
+  const startEditingGuest = (guest: Guest) => {
+    setEditingGuest(guest.id);
+    setEditGuestData({
+      first_name: guest.firstName,
+      last_name: guest.lastName,
+      invited_to_ceremony: guest.invitedToCeremony,
+      can_bring_plus_one: guest.canBringPlusOne,
+    });
+    setError('');
+  };
+
+  const cancelEditingGuest = () => {
+    setEditingGuest(null);
+    setEditGuestData({ first_name: '', last_name: '', invited_to_ceremony: true, can_bring_plus_one: false });
+    setError('');
+  };
+
+  const saveGuest = async (guestId: number) => {
+    setSaving(true);
+    setError('');
+    try {
+      const response = await fetch(`/api/admin/guests/guest/${guestId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(editGuestData),
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Failed to update guest');
+      }
+
+      setEditingGuest(null);
+      fetchParties();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to update guest');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const deleteGuest = async (guestId: number, guestName: string) => {
+    if (!confirm(`Are you sure you want to delete ${guestName}? This cannot be undone.`)) {
+      return;
+    }
+
+    setSaving(true);
+    setError('');
+    try {
+      const response = await fetch(`/api/admin/guests/guest/${guestId}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Failed to delete guest');
+      }
+
+      fetchParties();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to delete guest');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // Add guest to existing party
+  const [addingGuestToParty, setAddingGuestToParty] = useState<number | null>(null);
+  const [newGuestData, setNewGuestData] = useState({
+    first_name: '',
+    last_name: '',
+    invited_to_ceremony: true,
+    can_bring_plus_one: false,
+  });
+
+  const startAddingGuest = (partyId: number) => {
+    setAddingGuestToParty(partyId);
+    setNewGuestData({ first_name: '', last_name: '', invited_to_ceremony: true, can_bring_plus_one: false });
+    setError('');
+  };
+
+  const cancelAddingGuest = () => {
+    setAddingGuestToParty(null);
+    setNewGuestData({ first_name: '', last_name: '', invited_to_ceremony: true, can_bring_plus_one: false });
+    setError('');
+  };
+
+  const addGuestToParty = async (partyId: number) => {
+    if (!newGuestData.first_name.trim()) {
+      setError('First name is required');
+      return;
+    }
+
+    setSaving(true);
+    setError('');
+    try {
+      const response = await fetch(`/api/admin/guests/${partyId}/add-guest`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newGuestData),
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Failed to add guest');
+      }
+
+      setAddingGuestToParty(null);
+      setNewGuestData({ first_name: '', last_name: '', invited_to_ceremony: true, can_bring_plus_one: false });
+      fetchParties();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to add guest');
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const exportParties = () => {
     const rows = [['Party Name', 'Password', 'Guest Name', 'Invitation Type', 'Can Bring +1']];
     parties.forEach(party => {
@@ -139,6 +333,12 @@ export default function AdminGuests() {
           </button>
         </div>
       </div>
+
+      {error && (
+        <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded">
+          <p className="text-red-600 text-center">{error}</p>
+        </div>
+      )}
 
       {/* Add Party Form */}
       {showAddParty && (
@@ -241,63 +441,247 @@ export default function AdminGuests() {
           parties.map(party => {
             const partyAllDay = party.guests.filter(g => g.invitedToCeremony).length;
             const partyEvening = party.guests.filter(g => !g.invitedToCeremony).length;
+            const isEditingThisParty = editingParty === party.partyId;
             
             return (
               <div key={party.partyId} className="bg-white rounded-lg shadow-sm overflow-hidden">
                 <div
                   className="p-4 flex items-center justify-between cursor-pointer hover:bg-gray-50"
-                  onClick={() => setExpandedParty(expandedParty === party.partyId ? null : party.partyId)}
+                  onClick={() => !isEditingThisParty && setExpandedParty(expandedParty === party.partyId ? null : party.partyId)}
                 >
-                  <div className="flex items-center gap-4">
-                    <div>
-                      <h3 className="font-medium text-gray-900">{party.partyName}</h3>
-                      <p className="text-sm text-gray-500">
-                        {party.guests.length} guest{party.guests.length !== 1 ? 's' : ''} • 
-                        Password: <span className="font-mono">{party.password}</span>
-                      </p>
-                    </div>
+                  <div className="flex items-center gap-4 flex-1">
+                    {isEditingThisParty ? (
+                      <div className="flex gap-2 flex-1" onClick={(e) => e.stopPropagation()}>
+                        <input
+                          type="text"
+                          value={editPartyData.party_name}
+                          onChange={(e) => setEditPartyData(prev => ({ ...prev, party_name: e.target.value }))}
+                          className="flex-1 px-3 py-1 border rounded text-sm"
+                          placeholder="Party name"
+                        />
+                        <input
+                          type="text"
+                          value={editPartyData.password}
+                          onChange={(e) => setEditPartyData(prev => ({ ...prev, password: e.target.value }))}
+                          className="w-32 px-3 py-1 border rounded text-sm font-mono"
+                          placeholder="Password"
+                        />
+                      </div>
+                    ) : (
+                      <div>
+                        <h3 className="font-medium text-gray-900">{party.partyName}</h3>
+                        <p className="text-sm text-gray-500">
+                          {party.guests.length} guest{party.guests.length !== 1 ? 's' : ''} • 
+                          Password: <span className="font-mono">{party.password}</span>
+                        </p>
+                      </div>
+                    )}
                   </div>
-                  <div className="flex items-center gap-2">
-                    {partyAllDay > 0 && (
-                      <span className="px-2 py-1 text-xs rounded bg-green-100 text-green-700">
-                        {partyAllDay} All Day
-                      </span>
+                  <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                    {isEditingThisParty ? (
+                      <>
+                        <button
+                          onClick={() => saveParty(party.partyId)}
+                          disabled={saving}
+                          className="px-3 py-1 text-xs bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50"
+                        >
+                          {saving ? 'Saving...' : 'Save'}
+                        </button>
+                        <button
+                          onClick={cancelEditingParty}
+                          className="px-3 py-1 text-xs border rounded hover:bg-gray-50"
+                        >
+                          Cancel
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        {partyAllDay > 0 && (
+                          <span className="px-2 py-1 text-xs rounded bg-green-100 text-green-700">
+                            {partyAllDay} All Day
+                          </span>
+                        )}
+                        {partyEvening > 0 && (
+                          <span className="px-2 py-1 text-xs rounded bg-purple-100 text-purple-700">
+                            {partyEvening} Evening
+                          </span>
+                        )}
+                        <button
+                          onClick={() => startEditingParty(party)}
+                          className="px-2 py-1 text-xs text-gray-500 hover:text-burgundy-700"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          onClick={() => deleteParty(party.partyId)}
+                          className="px-2 py-1 text-xs text-gray-500 hover:text-red-600"
+                        >
+                          Delete
+                        </button>
+                        <svg
+                          className={`w-5 h-5 text-gray-400 transition-transform ${expandedParty === party.partyId ? 'rotate-180' : ''}`}
+                          fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                        >
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </>
                     )}
-                    {partyEvening > 0 && (
-                      <span className="px-2 py-1 text-xs rounded bg-purple-100 text-purple-700">
-                        {partyEvening} Evening
-                      </span>
-                    )}
-                    <svg
-                      className={`w-5 h-5 text-gray-400 transition-transform ${expandedParty === party.partyId ? 'rotate-180' : ''}`}
-                      fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                    >
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                    </svg>
                   </div>
                 </div>
 
                 {expandedParty === party.partyId && (
                   <div className="border-t px-4 py-4 bg-gray-50">
                     <div className="space-y-2">
-                      {party.guests.map(guest => (
-                        <div key={guest.id} className="flex items-center justify-between py-2 px-3 bg-white rounded">
-                          <div className="flex items-center gap-3">
-                            <span>{guest.firstName} {guest.lastName}</span>
-                            {guest.isPlusOne && (
-                              <span className="px-2 py-0.5 bg-purple-100 text-purple-700 text-xs rounded">+1 Slot</span>
+                      {party.guests.map(guest => {
+                        const isEditingThisGuest = editingGuest === guest.id;
+                        
+                        return (
+                          <div key={guest.id} className="flex items-center justify-between py-2 px-3 bg-white rounded">
+                            {isEditingThisGuest ? (
+                              <div className="flex items-center gap-2 flex-1 flex-wrap">
+                                <input
+                                  type="text"
+                                  value={editGuestData.first_name}
+                                  onChange={(e) => setEditGuestData(prev => ({ ...prev, first_name: e.target.value }))}
+                                  className="w-28 px-2 py-1 border rounded text-sm"
+                                  placeholder="First name"
+                                />
+                                <input
+                                  type="text"
+                                  value={editGuestData.last_name}
+                                  onChange={(e) => setEditGuestData(prev => ({ ...prev, last_name: e.target.value }))}
+                                  className="w-28 px-2 py-1 border rounded text-sm"
+                                  placeholder="Last name"
+                                />
+                                <select
+                                  value={editGuestData.invited_to_ceremony ? 'all-day' : 'evening'}
+                                  onChange={(e) => setEditGuestData(prev => ({ ...prev, invited_to_ceremony: e.target.value === 'all-day' }))}
+                                  className="px-2 py-1 border rounded text-xs"
+                                >
+                                  <option value="all-day">🌅 All Day</option>
+                                  <option value="evening">🌙 Evening</option>
+                                </select>
+                                {!guest.isPlusOne && (
+                                  <label className="flex items-center gap-1 text-xs">
+                                    <input
+                                      type="checkbox"
+                                      checked={editGuestData.can_bring_plus_one}
+                                      onChange={(e) => setEditGuestData(prev => ({ ...prev, can_bring_plus_one: e.target.checked }))}
+                                    />
+                                    +1
+                                  </label>
+                                )}
+                              </div>
+                            ) : (
+                              <div className="flex items-center gap-3">
+                                <span>{guest.firstName} {guest.lastName}</span>
+                                {guest.isPlusOne && (
+                                  <span className="px-2 py-0.5 bg-purple-100 text-purple-700 text-xs rounded">+1 Slot</span>
+                                )}
+                                {guest.canBringPlusOne && (
+                                  <span className="px-2 py-0.5 bg-blue-100 text-blue-700 text-xs rounded">Can bring +1</span>
+                                )}
+                              </div>
                             )}
-                            {guest.canBringPlusOne && (
-                              <span className="px-2 py-0.5 bg-blue-100 text-blue-700 text-xs rounded">Can bring +1</span>
-                            )}
+                            
+                            <div className="flex items-center gap-2">
+                              {isEditingThisGuest ? (
+                                <>
+                                  <button
+                                    onClick={() => saveGuest(guest.id)}
+                                    disabled={saving}
+                                    className="px-2 py-1 text-xs bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50"
+                                  >
+                                    {saving ? '...' : 'Save'}
+                                  </button>
+                                  <button
+                                    onClick={cancelEditingGuest}
+                                    className="px-2 py-1 text-xs border rounded hover:bg-gray-50"
+                                  >
+                                    Cancel
+                                  </button>
+                                </>
+                              ) : (
+                                <>
+                                  <span className={`px-2 py-1 text-xs rounded ${
+                                    guest.invitedToCeremony ? 'bg-green-100 text-green-700' : 'bg-purple-100 text-purple-700'
+                                  }`}>
+                                    {guest.invitedToCeremony ? '🌅 All Day' : '🌙 Evening'}
+                                  </span>
+                                  <button
+                                    onClick={() => startEditingGuest(guest)}
+                                    className="px-2 py-1 text-xs text-gray-500 hover:text-burgundy-700"
+                                  >
+                                    Edit
+                                  </button>
+                                  <button
+                                    onClick={() => deleteGuest(guest.id, `${guest.firstName} ${guest.lastName}`)}
+                                    className="px-2 py-1 text-xs text-gray-500 hover:text-red-600"
+                                  >
+                                    Delete
+                                  </button>
+                                </>
+                              )}
+                            </div>
                           </div>
-                          <span className={`px-2 py-1 text-xs rounded ${
-                            guest.invitedToCeremony ? 'bg-green-100 text-green-700' : 'bg-purple-100 text-purple-700'
-                          }`}>
-                            {guest.invitedToCeremony ? '🌅 All Day' : '🌙 Evening'}
-                          </span>
+                        );
+                      })}
+
+                      {/* Add Guest to Party Form */}
+                      {addingGuestToParty === party.partyId ? (
+                        <div className="flex items-center gap-2 py-2 px-3 bg-blue-50 rounded flex-wrap">
+                          <input
+                            type="text"
+                            value={newGuestData.first_name}
+                            onChange={(e) => setNewGuestData(prev => ({ ...prev, first_name: e.target.value }))}
+                            className="w-28 px-2 py-1 border rounded text-sm"
+                            placeholder="First name"
+                          />
+                          <input
+                            type="text"
+                            value={newGuestData.last_name}
+                            onChange={(e) => setNewGuestData(prev => ({ ...prev, last_name: e.target.value }))}
+                            className="w-28 px-2 py-1 border rounded text-sm"
+                            placeholder="Last name"
+                          />
+                          <select
+                            value={newGuestData.invited_to_ceremony ? 'all-day' : 'evening'}
+                            onChange={(e) => setNewGuestData(prev => ({ ...prev, invited_to_ceremony: e.target.value === 'all-day' }))}
+                            className="px-2 py-1 border rounded text-xs"
+                          >
+                            <option value="all-day">🌅 All Day</option>
+                            <option value="evening">🌙 Evening</option>
+                          </select>
+                          <label className="flex items-center gap-1 text-xs">
+                            <input
+                              type="checkbox"
+                              checked={newGuestData.can_bring_plus_one}
+                              onChange={(e) => setNewGuestData(prev => ({ ...prev, can_bring_plus_one: e.target.checked }))}
+                            />
+                            +1
+                          </label>
+                          <button
+                            onClick={() => addGuestToParty(party.partyId)}
+                            disabled={saving}
+                            className="px-3 py-1 text-xs bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50"
+                          >
+                            {saving ? '...' : 'Add'}
+                          </button>
+                          <button
+                            onClick={cancelAddingGuest}
+                            className="px-3 py-1 text-xs border rounded hover:bg-gray-50"
+                          >
+                            Cancel
+                          </button>
                         </div>
-                      ))}
+                      ) : (
+                        <button
+                          onClick={() => startAddingGuest(party.partyId)}
+                          className="w-full py-2 text-sm text-burgundy-700 hover:text-burgundy-900 hover:bg-burgundy-50 rounded border border-dashed border-burgundy-200"
+                        >
+                          + Add guest to this party
+                        </button>
+                      )}
                     </div>
                   </div>
                 )}

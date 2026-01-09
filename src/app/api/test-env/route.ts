@@ -1,8 +1,24 @@
 import { NextResponse } from 'next/server';
+import { createAdminClient } from '@/lib/supabase';
 
 export async function GET() {
-  return NextResponse.json({
-    serviceKeyEnd: process.env.SUPABASE_SERVICE_ROLE_KEY?.slice(-10),
-    anonKeyEnd: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.slice(-10),
-  });
+  try {
+    const supabase = createAdminClient();
+    
+    // Try a simple insert and delete to test RLS bypass
+    const { data, error } = await supabase
+      .from('parties')
+      .select('*')
+      .limit(1);
+    
+    return NextResponse.json({
+      success: !error,
+      error: error,
+      data: data,
+    });
+  } catch (e: any) {
+    return NextResponse.json({
+      caught: e.message,
+    });
+  }
 }

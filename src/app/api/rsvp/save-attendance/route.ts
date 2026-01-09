@@ -14,39 +14,40 @@ export async function POST(request: NextRequest) {
     for (const rsvp of guest_rsvps) {
       const { guest_id, attending, plus_one_first_name, plus_one_last_name } = rsvp;
 
-      // Check if RSVP exists
+      // Check if record exists
       const { data: existingRsvp } = await supabase
         .from('guest_rsvps')
         .select('id')
         .eq('guest_id', guest_id)
         .single();
 
-      const rsvpData = {
-        guest_id,
-        attending,
-        plus_one_first_name: plus_one_first_name || null,
-        plus_one_last_name: plus_one_last_name || null,
-        updated_at: new Date().toISOString(),
-      };
-
       if (existingRsvp) {
-        // Update existing
+        // Update existing record (only attendance fields, preserves meal data)
         const { error } = await supabase
           .from('guest_rsvps')
-          .update(rsvpData)
-          .eq('id', existingRsvp.id);
+          .update({
+            attending,
+            plus_one_first_name: plus_one_first_name || null,
+            plus_one_last_name: plus_one_last_name || null,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('guest_id', guest_id);
 
         if (error) {
           console.error('Error updating RSVP:', error);
           return NextResponse.json({ error: 'Failed to update RSVP' }, { status: 500 });
         }
       } else {
-        // Insert new
+        // Insert new record
         const { error } = await supabase
           .from('guest_rsvps')
           .insert({
-            ...rsvpData,
+            guest_id,
+            attending,
+            plus_one_first_name: plus_one_first_name || null,
+            plus_one_last_name: plus_one_last_name || null,
             submitted_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
           });
 
         if (error) {

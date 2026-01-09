@@ -14,18 +14,44 @@ export async function POST(request: NextRequest) {
     for (const rsvp of guest_rsvps) {
       const { guest_id, meal_choice, dietary_requirements } = rsvp;
 
-      const { error } = await supabase
+      // Check if record exists
+      const { data: existingRsvp } = await supabase
         .from('guest_rsvps')
-        .update({
-          meal_choice: meal_choice || null,
-          dietary_requirements: dietary_requirements || null,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('guest_id', guest_id);
+        .select('id')
+        .eq('guest_id', guest_id)
+        .single();
 
-      if (error) {
-        console.error('Error updating meal choice:', error);
-        return NextResponse.json({ error: 'Failed to save meal choices' }, { status: 500 });
+      if (existingRsvp) {
+        // Update existing record (only meal fields, preserves attendance data)
+        const { error } = await supabase
+          .from('guest_rsvps')
+          .update({
+            meal_choice: meal_choice || null,
+            dietary_requirements: dietary_requirements || null,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('guest_id', guest_id);
+
+        if (error) {
+          console.error('Error updating meal choice:', error);
+          return NextResponse.json({ error: 'Failed to save meal choices' }, { status: 500 });
+        }
+      } else {
+        // Insert new record (this shouldn't normally happen as attendance is saved first)
+        const { error } = await supabase
+          .from('guest_rsvps')
+          .insert({
+            guest_id,
+            meal_choice: meal_choice || null,
+            dietary_requirements: dietary_requirements || null,
+            submitted_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          });
+
+        if (error) {
+          console.error('Error inserting meal choice:', error);
+          return NextResponse.json({ error: 'Failed to save meal choices' }, { status: 500 });
+        }
       }
     }
 

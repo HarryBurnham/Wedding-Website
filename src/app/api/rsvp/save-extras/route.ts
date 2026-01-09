@@ -10,39 +10,40 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Party ID is required' }, { status: 400 });
     }
 
-    // Check if party extras exist
+    // Check if record exists
     const { data: existingExtras } = await supabase
       .from('party_extras')
       .select('id')
       .eq('party_id', party_id)
       .single();
 
-    const extrasData = {
-      party_id,
-      song_request: song_request || null,
-      recipe_title: recipe_title || null,
-      recipe_text: recipe_text || null,
-      updated_at: new Date().toISOString(),
-    };
-
     if (existingExtras) {
-      // Update existing
+      // Update existing record
       const { error } = await supabase
         .from('party_extras')
-        .update(extrasData)
-        .eq('id', existingExtras.id);
+        .update({
+          song_request: song_request || null,
+          recipe_title: recipe_title || null,
+          recipe_text: recipe_text || null,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('party_id', party_id);
 
       if (error) {
         console.error('Error updating extras:', error);
         return NextResponse.json({ error: 'Failed to save' }, { status: 500 });
       }
     } else {
-      // Insert new
+      // Insert new record
       const { error } = await supabase
         .from('party_extras')
         .insert({
-          ...extrasData,
+          party_id,
+          song_request: song_request || null,
+          recipe_title: recipe_title || null,
+          recipe_text: recipe_text || null,
           submitted_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
         });
 
       if (error) {
@@ -57,3 +58,4 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'An error occurred' }, { status: 500 });
   }
 }
+

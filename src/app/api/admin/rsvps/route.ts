@@ -16,7 +16,12 @@ export async function GET() {
       `)
       .order('id', { ascending: true });
 
-    if (error) throw error;
+    if (error) {
+      console.error('Supabase error:', error);
+      throw error;
+    }
+
+    console.log('Raw parties data:', JSON.stringify(parties, null, 2));
 
     const formattedRsvps = parties?.map(party => {
       const guests = party.guests || [];
@@ -28,6 +33,25 @@ export async function GET() {
       // Format guest details
       const guestDetails = guests.map((guest: any) => {
         const rsvp = guest.guest_rsvps?.[0];
+        
+        // Debug log for each guest
+        console.log(`Guest ${guest.id} (${guest.first_name}):`, {
+          hasRsvp: !!rsvp,
+          rsvpAttending: rsvp?.attending,
+          rsvpAttendingType: typeof rsvp?.attending,
+        });
+
+        // Handle attending - could be boolean, string, or null
+        let attending: boolean | null = null;
+        if (rsvp?.attending !== undefined && rsvp?.attending !== null) {
+          // Handle string "true"/"false" or boolean true/false
+          if (typeof rsvp.attending === 'string') {
+            attending = rsvp.attending === 'true';
+          } else {
+            attending = Boolean(rsvp.attending);
+          }
+        }
+
         return {
           id: guest.id,
           firstName: guest.first_name,
@@ -36,7 +60,7 @@ export async function GET() {
           canBringPlusOne: guest.can_bring_plus_one,
           plusOneFor: guest.plus_one_for,
           // RSVP data
-          attending: rsvp?.attending ?? null,
+          attending,
           mealChoice: rsvp?.meal_choice || null,
           dietaryRequirements: rsvp?.dietary_requirements || null,
           plusOneFirstName: rsvp?.plus_one_first_name || null,
@@ -49,9 +73,11 @@ export async function GET() {
         };
       });
 
-      // Count attending
+      // Count attending - use explicit true check
       const attendingCount = guestDetails.filter((g: any) => g.attending === true).length;
       const notAttendingCount = guestDetails.filter((g: any) => g.attending === false).length;
+
+      console.log(`Party ${party.party_name}: attending=${attendingCount}, notAttending=${notAttendingCount}`);
 
       return {
         partyId: party.id,

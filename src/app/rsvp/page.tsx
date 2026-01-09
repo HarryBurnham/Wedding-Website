@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
+import EditableField from '@/components/EditableField';
 import { WEDDING_CONFIG } from '@/lib/constants';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -36,12 +37,32 @@ interface PartyExtras {
   recipeText: string;
 }
 
+// Previously Saved Label Component
+const PreviouslySavedLabel = () => (
+  <span className="text-xs text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full">
+    Previously saved
+  </span>
+);
+
+// Guest Badge Component for Plus-Ones
+const GuestOfBadge = ({ mainGuestName }: { mainGuestName: string }) => (
+  <span className="text-xs text-purple-600 bg-purple-50 px-2 py-1 rounded-full">
+    Guest of {mainGuestName}
+  </span>
+);
+
 export default function RSVP() {
   const [step, setStep] = useState<'login' | 'attendance' | 'meals' | 'extras' | 'success'>('login');
+  const [showReviewModal, setShowReviewModal] = useState(false);
+  const [editingSection, setEditingSection] = useState<'attendance' | 'meals' | 'extras' | null>(null);
   const [partyName, setPartyName] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  
+  // Track which fields are being edited inline (for returning users)
+  const [editingDietary, setEditingDietary] = useState<{ [guestId: number]: boolean }>({});
+  const [editingPlusOneName, setEditingPlusOneName] = useState<{ [guestId: number]: boolean }>({});
   
   const [party, setParty] = useState<Party | null>(null);
   const [guests, setGuests] = useState<Guest[]>([]);
@@ -51,12 +72,31 @@ export default function RSVP() {
     recipeTitle: '',
     recipeText: '',
   });
+  
+  // Track if this is a returning user (has existing RSVPs)
+  const [isReturningUser, setIsReturningUser] = useState(false);
+  
+  // Track original values to know what was pre-filled
+  const [originalRSVPs, setOriginalRSVPs] = useState<{ [guestId: number]: GuestRSVP }>({});
+  const [originalExtras, setOriginalExtras] = useState<PartyExtras | null>(null);
 
   const rsvpDeadline = WEDDING_CONFIG.rsvpDeadline.toLocaleDateString('en-GB', {
     day: 'numeric',
     month: 'long',
     year: 'numeric',
   });
+
+  // Check if a field was pre-filled (for showing "Previously saved" label)
+  const wasPreFilled = (guestId: number, field: keyof GuestRSVP): boolean => {
+    if (!isReturningUser) return false;
+    const original = originalRSVPs[guestId];
+    if (!original) return false;
+    
+    if (field === 'attending') {
+      return original.attending !== null;
+    }
+    return !!original[field];
+  };
 
   // Handle party login
   const handleLogin = async (e: React.FormEvent) => {
@@ -83,6 +123,10 @@ export default function RSVP() {
       setParty(data.party);
       setGuests(data.guests);
 
+      // Check if this is a returning user
+      const hasExistingRsvps = data.existingRsvps && Object.keys(data.existingRsvps).length > 0;
+      setIsReturningUser(hasExistingRsvps);
+
       // Initialize RSVPs for each guest
       const initialRSVPs: { [guestId: number]: GuestRSVP } = {};
       data.guests.forEach((guest: Guest) => {
@@ -96,14 +140,19 @@ export default function RSVP() {
         };
       });
       setGuestRSVPs(initialRSVPs);
+      
+      // Store original values for "Previously saved" detection
+      setOriginalRSVPs(JSON.parse(JSON.stringify(initialRSVPs)));
 
       // Load existing party extras
       if (data.partyExtras) {
-        setPartyExtras({
+        const extras = {
           songRequest: data.partyExtras.songRequest ?? '',
           recipeTitle: data.partyExtras.recipeTitle ?? '',
           recipeText: data.partyExtras.recipeText ?? '',
-        });
+        };
+        setPartyExtras(extras);
+        setOriginalExtras(JSON.parse(JSON.stringify(extras)));
       }
 
       setStep('attendance');
@@ -165,13 +214,44 @@ export default function RSVP() {
     });
   };
 
-  // Save attendance and move to meals
-  const handleAttendanceNext = async () => {
+  // Get meal option name by id
+  const getMealOptionName = (mealId: string): string => {
+    const option = WEDDING_CONFIG.mealOptions.find(o => o.id === mealId);
+    return option ? option.name : mealId || 'Not selected';
+  };
+
+  // Check if plus-one name was previously saved
+  const plusOneNameWasSaved = (plusOneId: number): boolean => {
+    if (!isReturningUser) return false;
+    const original = originalRSVPs[plusOneId];
+    return !!(original?.plusOneFirstName);
+  };
+
+  // Navigate to next step (no saving)
+  const handleAttendanceNext = () => {
+    if (getAttendingGuests().length === 0) {
+      setStep('extras');
+    } else {
+      setStep('meals');
+    }
+  };
+
+  const handleMealsNext = () => {
+    setStep('extras');
+  };
+
+  const handleExtrasNext = () => {
+    setShowReviewModal(true);
+  };
+
+  // Submit all data
+  const handleFinalSubmit = async () => {
     setError('');
     setLoading(true);
 
     try {
-      const response = await fetch('/api/rsvp/save-attendance', {
+      // 1. Save attendance
+      const attendanceResponse = await fetch('/api/rsvp/save-attendance', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -185,67 +265,38 @@ export default function RSVP() {
         }),
       });
 
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || 'Failed to save');
+      if (!attendanceResponse.ok) {
+        const data = await attendanceResponse.json();
+        throw new Error(data.error || 'Failed to save attendance');
       }
 
-      // If no one is attending, skip to extras
-      if (getAttendingGuests().length === 0) {
-        setStep('extras');
-      } else {
-        setStep('meals');
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
-    } finally {
-      setLoading(false);
-    }
-  };
+      // 2. Save meals (only if there are attending guests)
+      if (getAttendingGuests().length > 0) {
+        const mealsResponse = await fetch('/api/rsvp/save-meals', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            guest_rsvps: Object.entries(guestRSVPs)
+              .filter(([guestId]) => {
+                const guest = guests.find(g => g.id === parseInt(guestId));
+                return guest && guestRSVPs[parseInt(guestId)]?.attending;
+              })
+              .map(([guestId, rsvp]) => ({
+                guest_id: parseInt(guestId),
+                meal_choice: rsvp.mealChoice,
+                dietary_requirements: rsvp.dietaryRequirements,
+              })),
+          }),
+        });
 
-  // Save meals and move to extras
-  const handleMealsNext = async () => {
-    setError('');
-    setLoading(true);
-
-    try {
-      const response = await fetch('/api/rsvp/save-meals', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          guest_rsvps: Object.entries(guestRSVPs)
-            .filter(([guestId]) => {
-              const guest = guests.find(g => g.id === parseInt(guestId));
-              return guest && guestRSVPs[parseInt(guestId)]?.attending;
-            })
-            .map(([guestId, rsvp]) => ({
-              guest_id: parseInt(guestId),
-              meal_choice: rsvp.mealChoice,
-              dietary_requirements: rsvp.dietaryRequirements,
-            })),
-        }),
-      });
-
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || 'Failed to save');
+        if (!mealsResponse.ok) {
+          const data = await mealsResponse.json();
+          throw new Error(data.error || 'Failed to save meals');
+        }
       }
 
-      setStep('extras');
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Save extras and complete
-  const handleExtrasSubmit = async () => {
-    setError('');
-    setLoading(true);
-
-    try {
-      const response = await fetch('/api/rsvp/save-extras', {
+      // 3. Save extras
+      const extrasResponse = await fetch('/api/rsvp/save-extras', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -256,11 +307,12 @@ export default function RSVP() {
         }),
       });
 
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || 'Failed to save');
+      if (!extrasResponse.ok) {
+        const data = await extrasResponse.json();
+        throw new Error(data.error || 'Failed to save extras');
       }
 
+      setShowReviewModal(false);
       setStep('success');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
@@ -298,6 +350,446 @@ export default function RSVP() {
               )}
             </div>
           ))}
+        </div>
+      </div>
+    );
+  };
+
+  // Plus One Name Edit Component (for Attendance step)
+  const PlusOneNameSection = ({ plusOne, mainGuest }: { plusOne: Guest; mainGuest: Guest }) => {
+    const plusOneRsvp = guestRSVPs[plusOne.id];
+    const isEditing = editingPlusOneName[plusOne.id];
+    const wasSaved = plusOneNameWasSaved(plusOne.id);
+    
+    // If returning user with saved name and not editing, show display view
+    if (wasSaved && !isEditing && plusOneRsvp?.plusOneFirstName) {
+      return (
+        <div className="bg-purple-50 p-4 rounded">
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-sm text-purple-700 font-medium">Your guest:</p>
+            <div className="flex items-center gap-2">
+              <PreviouslySavedLabel />
+              <button
+                type="button"
+                onClick={() => setEditingPlusOneName(prev => ({ ...prev, [plusOne.id]: true }))}
+                className="text-sm text-burgundy-700 hover:text-burgundy-900 font-medium"
+              >
+                Edit
+              </button>
+            </div>
+          </div>
+          <p className="text-purple-900">
+            {plusOneRsvp.plusOneFirstName} {plusOneRsvp.plusOneLastName}
+          </p>
+        </div>
+      );
+    }
+    
+    // Show input fields (for new users or when editing)
+    return (
+      <div className="bg-purple-50 p-4 rounded">
+        <div className="flex items-center justify-between mb-3">
+          <p className="text-sm text-purple-700">
+            Please provide your guest's name:
+          </p>
+          {wasSaved && isEditing && (
+            <button
+              type="button"
+              onClick={() => setEditingPlusOneName(prev => ({ ...prev, [plusOne.id]: false }))}
+              className="text-sm text-gray-500 hover:text-gray-700"
+            >
+              Done
+            </button>
+          )}
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          <input
+            type="text"
+            value={plusOneRsvp?.plusOneFirstName || ''}
+            onChange={(e) => updateGuestRSVP(plusOne.id, 'plusOneFirstName', e.target.value)}
+            placeholder="First name"
+            className="input-field"
+            required
+          />
+          <input
+            type="text"
+            value={plusOneRsvp?.plusOneLastName || ''}
+            onChange={(e) => updateGuestRSVP(plusOne.id, 'plusOneLastName', e.target.value)}
+            placeholder="Last name"
+            className="input-field"
+          />
+        </div>
+      </div>
+    );
+  };
+
+  // Review Modal Component
+  const ReviewModal = () => {
+    if (!showReviewModal) return null;
+
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        {/* Backdrop */}
+        <div 
+          className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+          onClick={() => !loading && setShowReviewModal(false)}
+        />
+        
+        {/* Modal */}
+        <div className="relative bg-white rounded-xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
+          <div className="sticky top-0 bg-white border-b border-gray-100 px-6 py-4 rounded-t-xl">
+            <h2 className="font-display text-2xl text-burgundy-900 text-center">
+              Review Your RSVP
+            </h2>
+            <p className="text-gray-500 text-sm text-center mt-1">
+              Please confirm your details before submitting
+            </p>
+          </div>
+
+          <div className="px-6 py-4 space-y-4">
+            {/* Attendance Section */}
+            <div className="border border-gray-200 rounded-lg overflow-hidden">
+              <div className="bg-gray-50 px-4 py-3 flex items-center justify-between">
+                <h3 className="font-medium text-burgundy-900">Attendance</h3>
+                <button
+                  type="button"
+                  onClick={() => setEditingSection(editingSection === 'attendance' ? null : 'attendance')}
+                  className="text-sm text-burgundy-700 hover:text-burgundy-900 font-medium"
+                >
+                  {editingSection === 'attendance' ? 'Done' : 'Edit'}
+                </button>
+              </div>
+              
+              <div className="px-4 py-3 space-y-3">
+                {editingSection === 'attendance' ? (
+                  // Editable attendance
+                  <div className="space-y-4">
+                    {guests.filter(g => !g.isPlusOne).map((guest) => {
+                      const plusOne = getPlusOneForGuest(guest.id);
+                      const guestRsvp = guestRSVPs[guest.id];
+
+                      return (
+                        <div key={guest.id} className="space-y-2">
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm text-gray-700">
+                              {guest.firstName} {guest.lastName}
+                            </span>
+                            <div className="flex gap-1">
+                              <button
+                                type="button"
+                                onClick={() => updateGuestRSVP(guest.id, 'attending', true)}
+                                className={`px-3 py-1 rounded text-xs font-medium transition-colors ${
+                                  guestRsvp?.attending === true
+                                    ? 'bg-green-600 text-white'
+                                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                }`}
+                              >
+                                Yes
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => updateGuestRSVP(guest.id, 'attending', false)}
+                                className={`px-3 py-1 rounded text-xs font-medium transition-colors ${
+                                  guestRsvp?.attending === false
+                                    ? 'bg-red-600 text-white'
+                                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                }`}
+                              >
+                                No
+                              </button>
+                            </div>
+                          </div>
+
+                          {/* Plus One in edit mode */}
+                          {guest.canBringPlusOne && plusOne && guestRsvp?.attending && (
+                            <div className="ml-4 pl-4 border-l-2 border-purple-200 space-y-2">
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                  <span className="text-sm text-gray-600">Bringing a guest?</span>
+                                  <GuestOfBadge mainGuestName={guest.firstName} />
+                                </div>
+                                <div className="flex gap-1">
+                                  <button
+                                    type="button"
+                                    onClick={() => updateGuestRSVP(plusOne.id, 'attending', true)}
+                                    className={`px-3 py-1 rounded text-xs font-medium transition-colors ${
+                                      guestRSVPs[plusOne.id]?.attending === true
+                                        ? 'bg-green-600 text-white'
+                                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                    }`}
+                                  >
+                                    Yes
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => updateGuestRSVP(plusOne.id, 'attending', false)}
+                                    className={`px-3 py-1 rounded text-xs font-medium transition-colors ${
+                                      guestRSVPs[plusOne.id]?.attending === false
+                                        ? 'bg-red-600 text-white'
+                                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                    }`}
+                                  >
+                                    No
+                                  </button>
+                                </div>
+                              </div>
+                              {guestRSVPs[plusOne.id]?.attending && (
+                                <div className="space-y-2">
+                                  {/* Plus-one name with edit functionality */}
+                                  {plusOneNameWasSaved(plusOne.id) && !editingPlusOneName[plusOne.id] ? (
+                                    <div className="flex items-center justify-between bg-purple-50 p-2 rounded">
+                                      <span className="text-sm text-purple-900">
+                                        {guestRSVPs[plusOne.id]?.plusOneFirstName} {guestRSVPs[plusOne.id]?.plusOneLastName}
+                                      </span>
+                                      <button
+                                        type="button"
+                                        onClick={() => setEditingPlusOneName(prev => ({ ...prev, [plusOne.id]: true }))}
+                                        className="text-xs text-burgundy-700 hover:text-burgundy-900 font-medium"
+                                      >
+                                        Edit
+                                      </button>
+                                    </div>
+                                  ) : (
+                                    <div className="flex gap-2">
+                                      <input
+                                        type="text"
+                                        value={guestRSVPs[plusOne.id]?.plusOneFirstName || ''}
+                                        onChange={(e) => updateGuestRSVP(plusOne.id, 'plusOneFirstName', e.target.value)}
+                                        placeholder="First name"
+                                        className="flex-1 px-2 py-1 text-sm border border-gray-300 rounded"
+                                      />
+                                      <input
+                                        type="text"
+                                        value={guestRSVPs[plusOne.id]?.plusOneLastName || ''}
+                                        onChange={(e) => updateGuestRSVP(plusOne.id, 'plusOneLastName', e.target.value)}
+                                        placeholder="Last name"
+                                        className="flex-1 px-2 py-1 text-sm border border-gray-300 rounded"
+                                      />
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  // Read-only attendance summary
+                  <div className="space-y-2">
+                    {guests.filter(g => !g.isPlusOne).map((guest) => {
+                      const rsvp = guestRSVPs[guest.id];
+
+                      return (
+                        <div key={guest.id} className="flex items-center justify-between text-sm">
+                          <span className="text-gray-700">{guest.firstName} {guest.lastName}</span>
+                          <span className={`font-medium ${rsvp?.attending ? 'text-green-600' : 'text-red-600'}`}>
+                            {rsvp?.attending ? '✓ Attending' : '✗ Not attending'}
+                          </span>
+                        </div>
+                      );
+                    })}
+                    {/* Show plus ones with badge */}
+                    {guests.filter(g => g.isPlusOne && guestRSVPs[g.id]?.attending).map((guest) => {
+                      const mainGuest = getMainGuestForPlusOne(guest);
+                      return (
+                        <div key={guest.id} className="flex items-center justify-between text-sm ml-4 pl-4 border-l-2 border-purple-200">
+                          <div className="flex items-center gap-2">
+                            <span className="text-gray-600">{getDisplayName(guest)}</span>
+                            {mainGuest && <GuestOfBadge mainGuestName={mainGuest.firstName} />}
+                          </div>
+                          <span className="font-medium text-green-600">✓ Attending</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Meals Section - Only show if someone is attending */}
+            {getAttendingGuests().length > 0 && (
+              <div className="border border-gray-200 rounded-lg overflow-hidden">
+                <div className="bg-gray-50 px-4 py-3 flex items-center justify-between">
+                  <h3 className="font-medium text-burgundy-900">Meal Choices</h3>
+                  <button
+                    type="button"
+                    onClick={() => setEditingSection(editingSection === 'meals' ? null : 'meals')}
+                    className="text-sm text-burgundy-700 hover:text-burgundy-900 font-medium"
+                  >
+                    {editingSection === 'meals' ? 'Done' : 'Edit'}
+                  </button>
+                </div>
+                
+                <div className="px-4 py-3 space-y-3">
+                  {editingSection === 'meals' ? (
+                    // Editable meals
+                    <div className="space-y-4">
+                      {getAttendingGuests().map((guest) => {
+                        const guestRsvp = guestRSVPs[guest.id];
+                        const mainGuest = guest.isPlusOne ? getMainGuestForPlusOne(guest) : null;
+                        
+                        return (
+                          <div key={guest.id} className={`space-y-2 ${guest.isPlusOne ? 'ml-4 pl-4 border-l-2 border-purple-200' : ''}`}>
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm font-medium text-gray-700">
+                                {getDisplayName(guest)}
+                              </span>
+                              {guest.isPlusOne && mainGuest && (
+                                <GuestOfBadge mainGuestName={mainGuest.firstName} />
+                              )}
+                            </div>
+                            <select
+                              value={guestRsvp?.mealChoice || ''}
+                              onChange={(e) => updateGuestRSVP(guest.id, 'mealChoice', e.target.value)}
+                              className="w-full px-2 py-1 text-sm border border-gray-300 rounded"
+                            >
+                              <option value="">Select meal</option>
+                              {WEDDING_CONFIG.mealOptions.map((option) => (
+                                <option key={option.id} value={option.id}>
+                                  {option.name}
+                                </option>
+                              ))}
+                            </select>
+                            <input
+                              type="text"
+                              value={guestRsvp?.dietaryRequirements || ''}
+                              onChange={(e) => updateGuestRSVP(guest.id, 'dietaryRequirements', e.target.value)}
+                              placeholder="Dietary requirements"
+                              className="w-full px-2 py-1 text-sm border border-gray-300 rounded"
+                            />
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    // Read-only meals summary
+                    <div className="space-y-2">
+                      {getAttendingGuests().map((guest) => {
+                        const rsvp = guestRSVPs[guest.id];
+                        const mainGuest = guest.isPlusOne ? getMainGuestForPlusOne(guest) : null;
+                        
+                        return (
+                          <div key={guest.id} className={`text-sm ${guest.isPlusOne ? 'ml-4 pl-4 border-l-2 border-purple-200' : ''}`}>
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                <span className="text-gray-700">{getDisplayName(guest)}</span>
+                                {guest.isPlusOne && mainGuest && (
+                                  <GuestOfBadge mainGuestName={mainGuest.firstName} />
+                                )}
+                              </div>
+                              <span className="text-gray-600">{getMealOptionName(rsvp?.mealChoice)}</span>
+                            </div>
+                            {rsvp?.dietaryRequirements && (
+                              <p className="text-gray-500 text-xs mt-0.5">
+                                Dietary: {rsvp.dietaryRequirements}
+                              </p>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Extras Section */}
+            <div className="border border-gray-200 rounded-lg overflow-hidden">
+              <div className="bg-gray-50 px-4 py-3 flex items-center justify-between">
+                <h3 className="font-medium text-burgundy-900">Song & Recipe</h3>
+                <button
+                  type="button"
+                  onClick={() => setEditingSection(editingSection === 'extras' ? null : 'extras')}
+                  className="text-sm text-burgundy-700 hover:text-burgundy-900 font-medium"
+                >
+                  {editingSection === 'extras' ? 'Done' : 'Edit'}
+                </button>
+              </div>
+              
+              <div className="px-4 py-3">
+                {editingSection === 'extras' ? (
+                  // Editable extras
+                  <div className="space-y-3">
+                    <div>
+                      <label className="text-sm text-gray-600 mb-1 block">Song Request</label>
+                      <input
+                        type="text"
+                        value={partyExtras.songRequest}
+                        onChange={(e) => setPartyExtras(prev => ({ ...prev, songRequest: e.target.value }))}
+                        placeholder="Song title - Artist"
+                        className="w-full px-2 py-1 text-sm border border-gray-300 rounded"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-sm text-gray-600 mb-1 block">Recipe Name</label>
+                      <input
+                        type="text"
+                        value={partyExtras.recipeTitle}
+                        onChange={(e) => setPartyExtras(prev => ({ ...prev, recipeTitle: e.target.value }))}
+                        placeholder="Recipe name"
+                        className="w-full px-2 py-1 text-sm border border-gray-300 rounded"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-sm text-gray-600 mb-1 block">Recipe</label>
+                      <textarea
+                        value={partyExtras.recipeText}
+                        onChange={(e) => setPartyExtras(prev => ({ ...prev, recipeText: e.target.value }))}
+                        placeholder="Ingredients and instructions..."
+                        rows={4}
+                        className="w-full px-2 py-1 text-sm border border-gray-300 rounded resize-none"
+                      />
+                    </div>
+                  </div>
+                ) : (
+                  // Read-only extras summary
+                  <div className="space-y-2 text-sm">
+                    <div>
+                      <span className="text-gray-500">Song Request: </span>
+                      <span className="text-gray-700">{partyExtras.songRequest || 'None'}</span>
+                    </div>
+                    <div>
+                      <span className="text-gray-500">Recipe: </span>
+                      <span className="text-gray-700">{partyExtras.recipeTitle || 'None'}</span>
+                    </div>
+                    {partyExtras.recipeText && (
+                      <p className="text-gray-500 text-xs line-clamp-2">{partyExtras.recipeText}</p>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {error && (
+              <div className="p-3 bg-red-50 border border-red-200 rounded">
+                <p className="text-red-600 text-sm text-center">{error}</p>
+              </div>
+            )}
+          </div>
+
+          {/* Footer */}
+          <div className="sticky bottom-0 bg-white border-t border-gray-100 px-6 py-4 rounded-b-xl">
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={() => setShowReviewModal(false)}
+                disabled={loading}
+                className="flex-1 px-4 py-3 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 disabled:opacity-50"
+              >
+                Back
+              </button>
+              <button
+                type="button"
+                onClick={handleFinalSubmit}
+                disabled={loading}
+                className="flex-1 px-4 py-3 bg-burgundy-900 text-white rounded-lg font-medium hover:bg-burgundy-800 disabled:opacity-50"
+              >
+                {loading ? 'Submitting...' : 'Confirm RSVP'}
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -407,12 +899,14 @@ export default function RSVP() {
               >
                 <div className="card mb-8">
                   <h2 className="font-display text-2xl text-burgundy-900 text-center mb-2">
-                    Welcome, {party.partyName}!
+                    {isReturningUser ? `Welcome back, ${party.partyName}!` : `Welcome, ${party.partyName}!`}
                   </h2>
                   <p className="text-gray-600 text-center">
-                    {party.invitedToCeremony 
-                      ? "You're invited to join us for the full day celebration."
-                      : "You're invited to join us for the evening reception."}
+                    {isReturningUser 
+                      ? "You can review and update your RSVP below."
+                      : party.invitedToCeremony 
+                        ? "You're invited to join us for the full day celebration."
+                        : "You're invited to join us for the evening reception."}
                   </p>
                   <div className="mt-4 text-center">
                     <span className={`inline-block px-4 py-2 rounded-full text-sm font-medium ${
@@ -439,9 +933,14 @@ export default function RSVP() {
                         <div key={guest.id} className="border border-burgundy-100 rounded-lg p-4">
                           {/* Main Guest */}
                           <div className="flex items-center justify-between mb-4">
-                            <span className="font-medium text-gray-800">
-                              {guest.firstName} {guest.lastName}
-                            </span>
+                            <div className="flex items-center gap-3">
+                              <span className="font-medium text-gray-800">
+                                {guest.firstName} {guest.lastName}
+                              </span>
+                              {wasPreFilled(guest.id, 'attending') && (
+                                <PreviouslySavedLabel />
+                              )}
+                            </div>
                             <div className="flex gap-2">
                               <button
                                 type="button"
@@ -471,9 +970,15 @@ export default function RSVP() {
                           {/* Plus One Section */}
                           {guest.canBringPlusOne && plusOne && guestRsvp?.attending && (
                             <div className="mt-4 pt-4 border-t border-gray-100">
-                              <p className="text-sm text-gray-600 mb-3">
-                                Would you like to bring a guest?
-                              </p>
+                              <div className="flex items-center gap-2 mb-3">
+                                <p className="text-sm text-gray-600">
+                                  Would you like to bring a guest?
+                                </p>
+                                <GuestOfBadge mainGuestName={guest.firstName} />
+                                {wasPreFilled(plusOne.id, 'attending') && (
+                                  <PreviouslySavedLabel />
+                                )}
+                              </div>
                               
                               <div className="flex gap-2 mb-4">
                                 <button
@@ -502,28 +1007,7 @@ export default function RSVP() {
 
                               {/* Plus One Name Entry */}
                               {guestRSVPs[plusOne.id]?.attending && (
-                                <div className="bg-purple-50 p-4 rounded">
-                                  <p className="text-sm text-purple-700 mb-3">
-                                    Please provide your guest's name:
-                                  </p>
-                                  <div className="grid grid-cols-2 gap-3">
-                                    <input
-                                      type="text"
-                                      value={guestRSVPs[plusOne.id]?.plusOneFirstName || ''}
-                                      onChange={(e) => updateGuestRSVP(plusOne.id, 'plusOneFirstName', e.target.value)}
-                                      placeholder="First name"
-                                      className="input-field"
-                                      required
-                                    />
-                                    <input
-                                      type="text"
-                                      value={guestRSVPs[plusOne.id]?.plusOneLastName || ''}
-                                      onChange={(e) => updateGuestRSVP(plusOne.id, 'plusOneLastName', e.target.value)}
-                                      placeholder="Last name"
-                                      className="input-field"
-                                    />
-                                  </div>
-                                </div>
+                                <PlusOneNameSection plusOne={plusOne} mainGuest={guest} />
                               )}
                             </div>
                           )}
@@ -542,10 +1026,10 @@ export default function RSVP() {
                 <button
                   type="button"
                   onClick={handleAttendanceNext}
-                  disabled={loading || guests.filter(g => !g.isPlusOne).some(g => guestRSVPs[g.id]?.attending === null)}
+                  disabled={guests.filter(g => !g.isPlusOne).some(g => guestRSVPs[g.id]?.attending === null)}
                   className="btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {loading ? 'Saving...' : 'Next: Meal Choices'}
+                  Next: Meal Choices
                 </button>
               </motion.div>
             )}
@@ -571,21 +1055,31 @@ export default function RSVP() {
                   {getAttendingGuests().map((guest) => {
                     const displayName = getDisplayName(guest);
                     const guestRsvp = guestRSVPs[guest.id];
+                    const isEditingDietaryField = editingDietary[guest.id];
+                    const mainGuest = guest.isPlusOne ? getMainGuestForPlusOne(guest) : null;
 
                     return (
                       <div key={guest.id} className="card">
-                        <h3 className="font-display text-lg text-burgundy-900 mb-4">
-                          {displayName}
-                          {guest.isPlusOne && (
-                            <span className="ml-2 text-sm text-purple-600">(Guest)</span>
+                        <div className="flex items-center gap-3 mb-4">
+                          <h3 className="font-display text-lg text-burgundy-900">
+                            {displayName}
+                          </h3>
+                          {guest.isPlusOne && mainGuest && (
+                            <GuestOfBadge mainGuestName={mainGuest.firstName} />
                           )}
-                        </h3>
+                        </div>
 
                         <div className="space-y-4">
+                          {/* Meal Choice */}
                           <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                              Meal Choice
-                            </label>
+                            <div className="flex items-center gap-2 mb-2">
+                              <label className="block text-sm font-medium text-gray-700">
+                                Meal Choice
+                              </label>
+                              {wasPreFilled(guest.id, 'mealChoice') && (
+                                <PreviouslySavedLabel />
+                              )}
+                            </div>
                             <select
                               value={guestRsvp?.mealChoice || ''}
                               onChange={(e) => updateGuestRSVP(guest.id, 'mealChoice', e.target.value)}
@@ -600,18 +1094,54 @@ export default function RSVP() {
                             </select>
                           </div>
 
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                              Dietary Requirements
-                            </label>
-                            <input
-                              type="text"
-                              value={guestRsvp?.dietaryRequirements || ''}
-                              onChange={(e) => updateGuestRSVP(guest.id, 'dietaryRequirements', e.target.value)}
-                              placeholder="Any allergies or dietary requirements?"
-                              className="input-field"
-                            />
-                          </div>
+                          {/* Dietary Requirements with inline edit for returning users */}
+                          {isReturningUser && guestRsvp?.dietaryRequirements && !isEditingDietaryField ? (
+                            <div className="flex items-start justify-between gap-4 p-3 bg-gray-50 rounded-lg">
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2 mb-1">
+                                  <span className="text-sm font-medium text-gray-700">Dietary Requirements</span>
+                                  <PreviouslySavedLabel />
+                                </div>
+                                <p className="text-gray-600">{guestRsvp.dietaryRequirements}</p>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => setEditingDietary(prev => ({ ...prev, [guest.id]: true }))}
+                                className="text-sm text-burgundy-700 hover:text-burgundy-900 font-medium shrink-0"
+                              >
+                                Edit
+                              </button>
+                            </div>
+                          ) : (
+                            <div>
+                              <div className="flex items-center justify-between mb-2">
+                                <div className="flex items-center gap-2">
+                                  <label className="block text-sm font-medium text-gray-700">
+                                    Dietary Requirements
+                                  </label>
+                                  {wasPreFilled(guest.id, 'dietaryRequirements') && isEditingDietaryField && (
+                                    <PreviouslySavedLabel />
+                                  )}
+                                </div>
+                                {isReturningUser && isEditingDietaryField && (
+                                  <button
+                                    type="button"
+                                    onClick={() => setEditingDietary(prev => ({ ...prev, [guest.id]: false }))}
+                                    className="text-sm text-gray-500 hover:text-gray-700"
+                                  >
+                                    Done
+                                  </button>
+                                )}
+                              </div>
+                              <input
+                                type="text"
+                                value={guestRsvp?.dietaryRequirements || ''}
+                                onChange={(e) => updateGuestRSVP(guest.id, 'dietaryRequirements', e.target.value)}
+                                placeholder="Any allergies or dietary requirements?"
+                                className="input-field"
+                              />
+                            </div>
+                          )}
                         </div>
                       </div>
                     );
@@ -635,10 +1165,9 @@ export default function RSVP() {
                   <button
                     type="button"
                     onClick={handleMealsNext}
-                    disabled={loading}
-                    className="btn-primary flex-1 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="btn-primary flex-1"
                   >
-                    {loading ? 'Saving...' : 'Next: Song & Recipe'}
+                    Next: Song & Recipe
                   </button>
                 </div>
               </motion.div>
@@ -666,16 +1195,28 @@ export default function RSVP() {
                   <h3 className="font-display text-xl text-burgundy-900 mb-4">
                     🎵 Song Request
                   </h3>
-                  <p className="text-gray-500 text-sm mb-4">
-                    What song will get you on the dance floor?
-                  </p>
-                  <input
-                    type="text"
-                    value={partyExtras.songRequest}
-                    onChange={(e) => setPartyExtras(prev => ({ ...prev, songRequest: e.target.value }))}
-                    placeholder="Song title - Artist"
-                    className="input-field"
-                  />
+                  
+                  {isReturningUser && partyExtras.songRequest ? (
+                    <EditableField
+                      label="Your song request"
+                      value={partyExtras.songRequest}
+                      onSave={(value) => setPartyExtras(prev => ({ ...prev, songRequest: value }))}
+                      placeholder="Song title - Artist"
+                    />
+                  ) : (
+                    <>
+                      <p className="text-gray-500 text-sm mb-4">
+                        What song will get you on the dance floor?
+                      </p>
+                      <input
+                        type="text"
+                        value={partyExtras.songRequest}
+                        onChange={(e) => setPartyExtras(prev => ({ ...prev, songRequest: e.target.value }))}
+                        placeholder="Song title - Artist"
+                        className="input-field"
+                      />
+                    </>
+                  )}
                 </div>
 
                 {/* Recipe */}
@@ -683,38 +1224,60 @@ export default function RSVP() {
                   <h3 className="font-display text-xl text-burgundy-900 mb-4">
                     📖 Share a Recipe
                   </h3>
-                  <p className="text-gray-500 text-sm mb-4">
-                    We'd love to collect recipes from our guests! Please share a favourite 
-                    recipe that means something to you.
-                  </p>
                   
-                  <div className="space-y-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Recipe Name
-                      </label>
-                      <input
-                        type="text"
+                  {isReturningUser && (partyExtras.recipeTitle || partyExtras.recipeText) ? (
+                    <div className="space-y-4">
+                      <EditableField
+                        label="Recipe Name"
                         value={partyExtras.recipeTitle}
-                        onChange={(e) => setPartyExtras(prev => ({ ...prev, recipeTitle: e.target.value }))}
+                        onSave={(value) => setPartyExtras(prev => ({ ...prev, recipeTitle: value }))}
                         placeholder="e.g. Grandma's Apple Pie"
-                        className="input-field"
                       />
-                    </div>
-                    
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Recipe
-                      </label>
-                      <textarea
+                      <EditableField
+                        label="Recipe"
                         value={partyExtras.recipeText}
-                        onChange={(e) => setPartyExtras(prev => ({ ...prev, recipeText: e.target.value }))}
+                        onSave={(value) => setPartyExtras(prev => ({ ...prev, recipeText: value }))}
                         placeholder="Ingredients and instructions..."
-                        rows={8}
-                        className="input-field resize-none"
+                        type="textarea"
+                        rows={6}
                       />
                     </div>
-                  </div>
+                  ) : (
+                    <>
+                      <p className="text-gray-500 text-sm mb-4">
+                        We'd love to collect recipes from our guests! Please share a favourite 
+                        recipe that means something to you.
+                      </p>
+                      
+                      <div className="space-y-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Recipe Name
+                          </label>
+                          <input
+                            type="text"
+                            value={partyExtras.recipeTitle}
+                            onChange={(e) => setPartyExtras(prev => ({ ...prev, recipeTitle: e.target.value }))}
+                            placeholder="e.g. Grandma's Apple Pie"
+                            className="input-field"
+                          />
+                        </div>
+                        
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Recipe
+                          </label>
+                          <textarea
+                            value={partyExtras.recipeText}
+                            onChange={(e) => setPartyExtras(prev => ({ ...prev, recipeText: e.target.value }))}
+                            placeholder="Ingredients and instructions..."
+                            rows={8}
+                            className="input-field resize-none"
+                          />
+                        </div>
+                      </div>
+                    </>
+                  )}
                 </div>
 
                 {error && (
@@ -733,11 +1296,10 @@ export default function RSVP() {
                   </button>
                   <button
                     type="button"
-                    onClick={handleExtrasSubmit}
-                    disabled={loading}
-                    className="btn-primary flex-1 disabled:opacity-50 disabled:cursor-not-allowed"
+                    onClick={handleExtrasNext}
+                    className="btn-primary flex-1"
                   >
-                    {loading ? 'Submitting...' : 'Submit RSVP'}
+                    Review RSVP
                   </button>
                 </div>
               </motion.div>
@@ -760,7 +1322,9 @@ export default function RSVP() {
                   Thank You!
                 </h2>
                 <p className="text-gray-600 mb-8">
-                  Your RSVP has been received. We can't wait to celebrate with you!
+                  {isReturningUser 
+                    ? "Your RSVP has been updated. We can't wait to celebrate with you!"
+                    : "Your RSVP has been received. We can't wait to celebrate with you!"}
                 </p>
 
                 <div className="space-y-4">
@@ -776,6 +1340,9 @@ export default function RSVP() {
           </AnimatePresence>
         </div>
       </section>
+
+      {/* Review Modal */}
+      <ReviewModal />
 
       <Footer />
     </main>

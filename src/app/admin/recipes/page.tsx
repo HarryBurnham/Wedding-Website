@@ -4,10 +4,6 @@ import { useState, useEffect } from 'react';
 import { Document, Packer, Paragraph, TextRun } from 'docx';
 import { saveAs } from 'file-saver';
 
-export const metadata = {
-  title: 'Harry Burnham & Adia Shane | Admin',
-};
-
 interface PartyExtra {
   id: number;
   partyId: number;

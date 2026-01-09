@@ -5,10 +5,6 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { ADMIN_NAV_LINKS } from '@/lib/constants';
 
-export const metadata = {
-  title: 'Harry Burnham & Adia Shane | Admin',
-};
-
 export default function AdminLayout({
   children,
 }: {
@@ -25,6 +21,19 @@ export default function AdminLayout({
       setIsAuthenticated(true);
     }
   }, []);
+
+  // Set document title based on current path
+  useEffect(() => {
+    const pageNames: { [key: string]: string } = {
+      '/admin': 'Dashboard',
+      '/admin/guests': 'Guests',
+      '/admin/rsvps': 'RSVPs',
+      '/admin/recipes': 'Recipes & Songs',
+      '/admin/messages': 'Messages',
+    };
+    const pageName = pageNames[pathname] || 'Admin';
+    document.title = `${pageName} | Admin | Harry & Adia Wedding`;
+  }, [pathname]);
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();

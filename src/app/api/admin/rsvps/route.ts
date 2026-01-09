@@ -1,56 +1,72 @@
 import { NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
 
+// Disable caching for this route
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
   try {
-    // Get all parties with their guests and RSVPs
-    const { data: parties, error } = await supabase
+    // Get all parties
+    const { data: parties, error: partiesError } = await supabase
       .from('parties')
-      .select(`
-        *,
-        guests (
-          *,
-          guest_rsvps (*)
-        ),
-        party_extras (*)
-      `)
+      .select('*')
       .order('id', { ascending: true });
 
-    if (error) {
-      console.error('Supabase error:', error);
-      throw error;
-    }
+    if (partiesError) throw partiesError;
 
-    console.log('Raw parties data:', JSON.stringify(parties, null, 2));
+    // Get all guests
+    const { data: guests, error: guestsError } = await supabase
+      .from('guests')
+      .select('*')
+      .order('id', { ascending: true });
 
-    const formattedRsvps = parties?.map(party => {
-      const guests = party.guests || [];
-      const extras = party.party_extras?.[0];
+    if (guestsError) throw guestsError;
+
+    // Get all RSVPs
+    const { data: rsvps, error: rsvpsError } = await supabase
+      .from('guest_rsvps')
+      .select('*');
+
+    if (rsvpsError) throw rsvpsError;
+
+    // Get all party extras
+    const { data: extras, error: extrasError } = await supabase
+      .from('party_extras')
+      .select('*');
+
+    if (extrasError) throw extrasError;
+
+    // Create lookup maps
+    const rsvpsByGuestId: { [key: number]: any } = {};
+    (rsvps || []).forEach(rsvp => {
+      rsvpsByGuestId[rsvp.guest_id] = rsvp;
+    });
+
+    const extrasByPartyId: { [key: number]: any } = {};
+    (extras || []).forEach(extra => {
+      extrasByPartyId[extra.party_id] = extra;
+    });
+
+    // Group guests by party
+    const guestsByPartyId: { [key: number]: any[] } = {};
+    (guests || []).forEach(guest => {
+      if (!guestsByPartyId[guest.party_id]) {
+        guestsByPartyId[guest.party_id] = [];
+      }
+      guestsByPartyId[guest.party_id].push(guest);
+    });
+
+    // Format the response
+    const formattedRsvps = (parties || []).map(party => {
+      const partyGuests = guestsByPartyId[party.id] || [];
+      const partyExtras = extrasByPartyId[party.id];
 
       // Check if any guest has responded
-      const hasResponded = guests.some((g: any) => g.guest_rsvps?.length > 0);
+      const hasResponded = partyGuests.some(g => rsvpsByGuestId[g.id] !== undefined);
 
       // Format guest details
-      const guestDetails = guests.map((guest: any) => {
-        const rsvp = guest.guest_rsvps?.[0];
-        
-        // Debug log for each guest
-        console.log(`Guest ${guest.id} (${guest.first_name}):`, {
-          hasRsvp: !!rsvp,
-          rsvpAttending: rsvp?.attending,
-          rsvpAttendingType: typeof rsvp?.attending,
-        });
-
-        // Handle attending - could be boolean, string, or null
-        let attending: boolean | null = null;
-        if (rsvp?.attending !== undefined && rsvp?.attending !== null) {
-          // Handle string "true"/"false" or boolean true/false
-          if (typeof rsvp.attending === 'string') {
-            attending = rsvp.attending === 'true';
-          } else {
-            attending = Boolean(rsvp.attending);
-          }
-        }
+      const guestDetails = partyGuests.map(guest => {
+        const rsvp = rsvpsByGuestId[guest.id];
 
         return {
           id: guest.id,
@@ -60,7 +76,7 @@ export async function GET() {
           canBringPlusOne: guest.can_bring_plus_one,
           plusOneFor: guest.plus_one_for,
           // RSVP data
-          attending,
+          attending: rsvp?.attending ?? null,
           mealChoice: rsvp?.meal_choice || null,
           dietaryRequirements: rsvp?.dietary_requirements || null,
           plusOneFirstName: rsvp?.plus_one_first_name || null,
@@ -73,11 +89,9 @@ export async function GET() {
         };
       });
 
-      // Count attending - use explicit true check
-      const attendingCount = guestDetails.filter((g: any) => g.attending === true).length;
-      const notAttendingCount = guestDetails.filter((g: any) => g.attending === false).length;
-
-      console.log(`Party ${party.party_name}: attending=${attendingCount}, notAttending=${notAttendingCount}`);
+      // Count attending
+      const attendingCount = guestDetails.filter(g => g.attending === true).length;
+      const notAttendingCount = guestDetails.filter(g => g.attending === false).length;
 
       return {
         partyId: party.id,
@@ -89,15 +103,16 @@ export async function GET() {
         attendingCount,
         notAttendingCount,
         guests: guestDetails,
-        songRequest: extras?.song_request || null,
-        recipeTitle: extras?.recipe_title || null,
-        recipeText: extras?.recipe_text || null,
+        songRequest: partyExtras?.song_request || null,
+        recipeTitle: partyExtras?.recipe_title || null,
+        recipeText: partyExtras?.recipe_text || null,
       };
-    }) || [];
+    });
 
     return NextResponse.json({ rsvps: formattedRsvps });
   } catch (error) {
     console.error('Error fetching RSVPs:', error);
-    return NextResponse.json({ rsvps: [] });
+    return NextResponse.json({ rsvps: [], error: String(error) }, { status: 500 });
   }
 }
+

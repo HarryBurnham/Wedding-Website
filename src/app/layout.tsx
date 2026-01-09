@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'Harry Burnham & Adia Shane | Wedding',
+  title: 'Harry & Adia | Wedding',
   description: 'We\'re getting married! Join us on 10th October 2026',
 };
 

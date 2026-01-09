@@ -1,15 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
 import EditableField from '@/components/EditableField';
 import { WEDDING_CONFIG } from '@/lib/constants';
 import { motion, AnimatePresence } from 'framer-motion';
-
-export const metadata = {
-  title: 'Harry Burnham & Adia Shane | RSVP',
-};
 
 interface Guest {
   id: number;
@@ -83,6 +79,10 @@ export default function RSVP() {
   // Track original values to know what was pre-filled
   const [originalRSVPs, setOriginalRSVPs] = useState<{ [guestId: number]: GuestRSVP }>({});
   const [originalExtras, setOriginalExtras] = useState<PartyExtras | null>(null);
+
+  useEffect(() => {
+    document.title = 'Harry & Adia Wedding | RSVP';
+  }, []);
 
   const rsvpDeadline = WEDDING_CONFIG.rsvpDeadline.toLocaleDateString('en-GB', {
     day: 'numeric',

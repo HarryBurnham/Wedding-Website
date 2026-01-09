@@ -3,7 +3,7 @@ import Footer from '@/components/Footer';
 import { WEDDING_CONFIG } from '@/lib/constants';
 
 export const metadata = {
-  title: 'Harry Burnham & Adia Shane | Registry',
+  title: 'Harry & Adia | Registry',
 };
 
 export default function Registry() {

@@ -1,13 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
 import { motion, AnimatePresence } from 'framer-motion';
-
-export const metadata = {
-  title: 'Harry Burnham & Adia Shane | FAQ',
-};
 
 interface FAQItem {
   question: string;
@@ -59,6 +55,10 @@ const faqs: FAQItem[] = [
 
 export default function FAQ() {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
+
+  useEffect(() => {
+    document.title = 'Harry & Adia Wedding | FAQ';
+  }, []);
 
   const toggleFAQ = (index: number) => {
     setOpenIndex(openIndex === index ? null : index);

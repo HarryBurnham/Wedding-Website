@@ -3,7 +3,7 @@ import Footer from '@/components/Footer';
 import { WEDDING_CONFIG } from '@/lib/constants';
 
 export const metadata = {
-  title: 'Harry Burnham & Adia Shane | Accomodation & Travel',
+  title: 'Harry & Adia | Accomodation & Travel',
 };
 
 export default function TravelAccommodation() {

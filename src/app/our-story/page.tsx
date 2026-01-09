@@ -3,7 +3,7 @@ import Footer from '@/components/Footer';
 import { WEDDING_CONFIG } from '@/lib/constants';
 
 export const metadata = {
-  title: 'Harry Burnham & Adia Shane | Our Story',
+  title: 'Harry & Adia | Our Story',
 };
 
 export default function OurStory() {

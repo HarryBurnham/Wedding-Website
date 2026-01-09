@@ -4,7 +4,7 @@ import VenuePhotos from '@/components/VenuePhotos';
 import { WEDDING_CONFIG } from '@/lib/constants';
 
 export const metadata = {
-  title: 'Harry Burnham & Adia Shane | Venue',
+  title: 'Harry & Adia | Venue',
 };
 
 export default function Venue() {

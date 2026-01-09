@@ -1,13 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
 import { motion } from 'framer-motion';
-
-export const metadata = {
-  title: 'Harry Burnham & Adia Shane | Contact',
-};
 
 export default function Contact() {
   const [formData, setFormData] = useState({
@@ -17,6 +13,10 @@ export default function Contact() {
   });
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    document.title = 'Harry & Adia Wedding | Contact';
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

@@ -1,36 +1,39 @@
-import { createClient } from '@supabase/supabase-js';
-
 /**
  * Public / browser-safe Supabase client
  * - Uses anon key
  * - RLS enforced
  */
-const publicSupabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+import { createClient } from '@supabase/supabase-js';
+
+/**
+ * Public Supabase client (browser + server-safe)
+ * - Uses anon key
+ * - RLS enforced
+ */
+const publicUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const publicAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
-if (!publicSupabaseUrl || !publicAnonKey) {
+if (!publicUrl || !publicAnonKey) {
   throw new Error('Missing public Supabase environment variables');
 }
 
-export const supabase = createClient(publicSupabaseUrl, publicAnonKey);
+export const supabase = createClient(publicUrl, publicAnonKey);
 
 /**
  * Admin Supabase client (SERVER ONLY)
  * - Uses service role key
  * - Bypasses RLS
- * - Must NEVER be imported into client components
+ * - Must never be used in client components
  */
 export const createAdminClient = () => {
-  const adminSupabaseUrl = process.env.SUPABASE_URL!;
+  const adminUrl = process.env.SUPABASE_URL!;
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
-  if (!adminSupabaseUrl || !serviceRoleKey) {
+  if (!adminUrl || !serviceRoleKey) {
     throw new Error('Missing admin Supabase environment variables');
   }
 
-  return createClient(adminSupabaseUrl, serviceRoleKey, {
-    auth: {
-      persistSession: false,
-    },
+  return createClient(adminUrl, serviceRoleKey, {
+    auth: { persistSession: false },
   });
 };

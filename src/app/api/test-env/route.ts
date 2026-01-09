@@ -5,11 +5,22 @@ export async function GET() {
   try {
     const supabase = createAdminClient();
     
-    // Try a simple insert and delete to test RLS bypass
+    // Try inserting a test party
     const { data, error } = await supabase
       .from('parties')
-      .select('*')
-      .limit(1);
+      .insert({
+        party_name: 'TEST_DELETE_ME',
+        password: 'test123',
+        invited_to_ceremony: true,
+        invited_to_reception: true,
+      })
+      .select()
+      .single();
+    
+    // If it worked, delete it
+    if (data) {
+      await supabase.from('parties').delete().eq('id', data.id);
+    }
     
     return NextResponse.json({
       success: !error,

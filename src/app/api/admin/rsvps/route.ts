@@ -13,6 +13,8 @@ export async function GET() {
       .select('*')
       .order('id', { ascending: true });
 
+    console.log('Parties count:', parties?.length, 'Error:', partiesError);
+
     if (partiesError) throw partiesError;
 
     // Get all guests

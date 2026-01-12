@@ -1,12 +1,13 @@
 import { NextResponse } from 'next/server';
-// import { createAdminClient } from '@/lib/supabase';
-import { supabase } from '@/lib/supabase';
+import { createAdminClient } from '@/lib/supabase';
+// import { supabase } from '@/lib/supabase';
 
+export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {
-    // const supabase = createAdminClient();
+    const supabase = createAdminClient();
 
     // Get all parties
     const { data: parties, error: partiesError } = await supabase

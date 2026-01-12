@@ -65,7 +65,7 @@ export default function AdminRecipes() {
 
   const fetchData = async () => {
     try {
-      const response = await fetch('/api/admin/recipes');
+      const response = await fetch('/api/admin/recipes', { cache: 'no-store' });
       const data = await response.json();
       setPartyExtras(data.recipes || []);
     } catch (error) {

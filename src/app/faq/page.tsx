@@ -25,7 +25,7 @@ const faqs: FAQItem[] = [
   },
   {
     question: 'WHAT TIME SHOULD I ARRIVE?',
-    answer: 'Please arrive at least 30 minutes before the ceremony begins to allow time to find your seat and settle in. The ceremony will start promptly, so we recommend arriving by 1:30 PM.',
+    answer: 'Please arrive at least 30 minutes before the ceremony begins to allow time to find your seat and settle in. The ceremony will start promptly, so we recommend arriving by 2:30 PM.',
   },
   {
     question: 'IS THERE PARKING AVAILABLE?',

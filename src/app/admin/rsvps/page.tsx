@@ -47,7 +47,7 @@ export default function AdminRSVPs() {
 
   const fetchRSVPs = async () => {
     try {
-      const response = await fetch('/api/admin/rsvps');
+      const response = await fetch('/api/admin/rsvps', { cache: 'no-store' });
       const data = await response.json();
       setRsvps(data.rsvps || []);
     } catch (error) {

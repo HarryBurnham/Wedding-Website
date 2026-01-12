@@ -53,7 +53,7 @@ export default function AdminGuests() {
 
   const fetchParties = async () => {
     try {
-      const response = await fetch('/api/admin/guests');
+      const response = await fetch('/api/admin/guests', { cache: 'no-store' });
       const data = await response.json();
       setParties(data.parties || []);
     } catch (error) {
@@ -518,12 +518,21 @@ export default function AdminGuests() {
                         >
                           Delete
                         </button>
-                        <svg
-                          className={`w-5 h-5 text-gray-400 transition-transform ${expandedParty === party.partyId ? 'rotate-180' : ''}`}
-                          fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setExpandedParty(expandedParty === party.partyId ? null : party.partyId);
+                          }}
+                          className="p-1 hover:bg-gray-200 rounded transition-colors"
                         >
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                        </svg>
+                          <svg
+                            className={`w-5 h-5 text-gray-400 transition-transform ${expandedParty === party.partyId ? 'rotate-180' : ''}`}
+                            fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                          >
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                          </svg>
+                        </button>
                       </>
                     )}
                   </div>

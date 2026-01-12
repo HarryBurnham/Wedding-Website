@@ -49,7 +49,7 @@ export default function AdminMessages() {
 
   const fetchMessages = async () => {
     try {
-      const response = await fetch('/api/admin/messages');
+      const response = await fetch('/api/admin/messages', { cache: 'no-store' });
       const data = await response.json();
       setMessages(data.messages || []);
     } catch (error) {

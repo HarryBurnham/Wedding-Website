@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase';
+// import { supabase } from '@/lib/supabase';
+import { createAdminClient } from '@/lib/supabase';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
+  const supabase = createAdminClient();
   try {
     const { data: parties, error } = await supabase
       .from('parties')
@@ -42,6 +44,7 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
+    const supabase = createAdminClient();
     const body = await request.json();
     const { party_name, password, invited_to_ceremony, invited_to_reception, guests } = body;
 

@@ -74,7 +74,7 @@ const faqs: FAQItem[] = [
       <>
         Yes! We have compiled a list of nearby hotels and B&Bs on our{' '}
         <Link
-          href="/travel-accommodation"
+          href="/accommodation"
           className="text-burgundy-700 underline hover:text-burgundy-900 transition-colors"
         >
           Travel & Accommodation

@@ -6,11 +6,6 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { party_name, password } = body;
 
-    console.log('Trying login with:', {
-      party_name: party_name.trim(),
-      password,
-    });
-
     if (!party_name || !password) {
       return NextResponse.json(
         { error: 'Party name and password are required' },

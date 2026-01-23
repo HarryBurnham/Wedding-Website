@@ -31,6 +31,8 @@ export default function AdminGuests() {
   const [editingGuest, setEditingGuest] = useState<number | null>(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const [showExportMenu, setShowExportMenu] = useState(false);
+  const [includeIds, setIncludeIds] = useState(false);
 
   // Edit states
   const [editPartyData, setEditPartyData] = useState<{ party_name: string; password: string }>({ party_name: '', password: '' });
@@ -50,6 +52,17 @@ export default function AdminGuests() {
   useEffect(() => {
     fetchParties();
   }, []);
+
+  // Close export menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (showExportMenu && !(e.target as Element).closest('.export-menu-container')) {
+        setShowExportMenu(false);
+      }
+    };
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, [showExportMenu]);
 
   const fetchParties = async () => {
     try {
@@ -288,17 +301,60 @@ export default function AdminGuests() {
     }
   };
 
-  const exportParties = () => {
-    const rows = [['Party Name', 'Password', 'Guest Name', 'Invitation Type', 'Can Bring +1']];
+  // Export functions - separate CSVs for parties and guests
+  const exportPartiesCSV = () => {
+    const headers = includeIds 
+      ? ['Party ID', 'Party Name', 'Password', 'Guest Count', 'All Day Guests', 'Evening Guests', 'Created At']
+      : ['Party Name', 'Password', 'Guest Count', 'All Day Guests', 'Evening Guests', 'Created At'];
+    
+    const rows = [headers];
+    parties.forEach(party => {
+      const allDayCount = party.guests.filter(g => g.invitedToCeremony).length;
+      const eveningCount = party.guests.filter(g => !g.invitedToCeremony).length;
+      const row = includeIds
+        ? [party.partyId.toString(), party.partyName, party.password, party.guests.length.toString(), allDayCount.toString(), eveningCount.toString(), party.createdAt]
+        : [party.partyName, party.password, party.guests.length.toString(), allDayCount.toString(), eveningCount.toString(), party.createdAt];
+      rows.push(row);
+    });
+
+    const csv = rows.map(row => row.map(cell => `"${cell}"`).join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'parties.csv';
+    a.click();
+    setShowExportMenu(false);
+  };
+
+  const exportGuestsCSV = () => {
+    const headers = includeIds
+      ? ['Guest ID', 'Party ID', 'Party Name', 'First Name', 'Last Name', 'Invitation Type', 'Can Bring +1', 'Is Plus One']
+      : ['Party Name', 'First Name', 'Last Name', 'Invitation Type', 'Can Bring +1', 'Is Plus One'];
+    
+    const rows = [headers];
     parties.forEach(party => {
       party.guests.forEach(guest => {
-        rows.push([
-          party.partyName,
-          party.password,
-          `${guest.firstName} ${guest.lastName}`,
-          guest.invitationType,
-          guest.canBringPlusOne ? 'Yes' : 'No',
-        ]);
+        const row = includeIds
+          ? [
+              guest.id.toString(),
+              party.partyId.toString(),
+              party.partyName,
+              guest.firstName,
+              guest.lastName,
+              guest.invitedToCeremony ? 'All Day' : 'Evening Only',
+              guest.canBringPlusOne ? 'Yes' : 'No',
+              guest.isPlusOne ? 'Yes' : 'No',
+            ]
+          : [
+              party.partyName,
+              guest.firstName,
+              guest.lastName,
+              guest.invitedToCeremony ? 'All Day' : 'Evening Only',
+              guest.canBringPlusOne ? 'Yes' : 'No',
+              guest.isPlusOne ? 'Yes' : 'No',
+            ];
+        rows.push(row);
       });
     });
 
@@ -307,8 +363,9 @@ export default function AdminGuests() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'parties-and-guests.csv';
+    a.download = 'guests.csv';
     a.click();
+    setShowExportMenu(false);
   };
 
   const totalGuests = parties.reduce((sum, p) => sum + p.guests.length, 0);
@@ -325,9 +382,59 @@ export default function AdminGuests() {
           </p>
         </div>
         <div className="flex gap-4">
-          <button onClick={exportParties} className="px-4 py-2 text-sm border border-gray-300 rounded hover:bg-gray-50">
-            Export CSV
-          </button>
+          {/* Export Dropdown */}
+          <div className="relative export-menu-container">
+            <button 
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowExportMenu(!showExportMenu);
+              }} 
+              className="px-4 py-2 text-sm border border-gray-300 rounded hover:bg-gray-50 flex items-center gap-2"
+            >
+              Export CSV
+              <svg className={`w-4 h-4 transition-transform ${showExportMenu ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+            
+            {showExportMenu && (
+              <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 z-10">
+                <div className="p-3 border-b border-gray-100">
+                  <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={includeIds}
+                      onChange={(e) => setIncludeIds(e.target.checked)}
+                      className="rounded border-gray-300"
+                    />
+                    Include IDs
+                  </label>
+                </div>
+                <div className="py-1">
+                  <button
+                    onClick={exportPartiesCSV}
+                    className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                    </svg>
+                    Export Parties
+                    <span className="ml-auto text-xs text-gray-400">{parties.length} rows</span>
+                  </button>
+                  <button
+                    onClick={exportGuestsCSV}
+                    className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                    Export Guests
+                    <span className="ml-auto text-xs text-gray-400">{totalGuests} rows</span>
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
           <button onClick={() => setShowAddParty(true)} className="px-4 py-2 text-sm bg-burgundy-900 text-white rounded hover:bg-burgundy-800">
             Add Party
           </button>

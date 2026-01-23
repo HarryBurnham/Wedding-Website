@@ -25,6 +25,7 @@ interface Party {
 
 interface GuestRSVP {
   attending: boolean | null;
+  starterCheese: boolean | null;
   mealChoice: string;
   dietaryRequirements: string;
   plusOneFirstName: string;
@@ -36,6 +37,43 @@ interface PartyExtras {
   recipeTitle: string;
   recipeText: string;
 }
+
+// Menu data - you can move this to constants.ts if preferred
+const MENU = {
+  starter: {
+    name: 'Bruschetta',
+    description: 'Toasted ciabatta topped with fresh tomatoes, garlic, basil and olive oil',
+    cheeseOption: {
+      name: 'With Cheese',
+      description: 'Add mozzarella to your bruschetta',
+    },
+  },
+  mains: [
+    {
+      id: 'beef',
+      name: 'Roast Beef',
+      description: 'Slow-roasted sirloin of British beef with rich red wine jus',
+      sides: ['Roast potatoes', 'Yorkshire pudding', 'Seasonal vegetables', 'Gravy'],
+    },
+    {
+      id: 'chicken',
+      name: 'Roast Chicken',
+      description: 'Free-range chicken breast with sage and onion stuffing',
+      sides: ['Roast potatoes', 'Seasonal vegetables', 'Gravy'],
+    },
+    {
+      id: 'vegetarian',
+      name: 'Wild Mushroom Wellington',
+      description: 'Flaky puff pastry filled with wild mushrooms, spinach and goat\'s cheese',
+      sides: ['New potatoes', 'Seasonal vegetables', 'Vegetarian gravy'],
+      isVegetarian: true,
+    },
+  ],
+  dessert: {
+    name: 'Wedding Cake',
+    description: 'A slice of our wedding cake served with fresh berries and cream',
+  },
+};
 
 // Previously Saved Label Component
 const PreviouslySavedLabel = () => (
@@ -110,6 +148,9 @@ export default function RSVP() {
     if (field === 'attending') {
       return original.attending !== null;
     }
+    if (field === 'starterCheese') {
+      return original.starterCheese !== null;
+    }
     return !!original[field];
   };
 
@@ -160,6 +201,7 @@ export default function RSVP() {
         const existingRsvp = data.existingRsvps?.[guest.id];
         initialRSVPs[guest.id] = {
           attending: existingRsvp?.attending ?? null,
+          starterCheese: existingRsvp?.starterCheese ?? null,
           mealChoice: existingRsvp?.mealChoice ?? '',
           dietaryRequirements: existingRsvp?.dietaryRequirements ?? '',
           plusOneFirstName: existingRsvp?.plusOneFirstName ?? '',
@@ -243,7 +285,7 @@ export default function RSVP() {
 
   // Get meal option name by id
   const getMealOptionName = (mealId: string): string => {
-    const option = WEDDING_CONFIG.mealOptions.find(o => o.id === mealId);
+    const option = MENU.mains.find(o => o.id === mealId);
     return option ? option.name : mealId || 'Not selected';
   };
 
@@ -310,6 +352,7 @@ export default function RSVP() {
               })
               .map(([guestId, rsvp]) => ({
                 guest_id: parseInt(guestId),
+                starter_cheese: rsvp.starterCheese,
                 meal_choice: rsvp.mealChoice,
                 dietary_requirements: rsvp.dietaryRequirements,
               })),
@@ -443,6 +486,159 @@ export default function RSVP() {
             value={plusOneRsvp?.plusOneLastName || ''}
             onChange={(e) => updateGuestRSVP(plusOne.id, 'plusOneLastName', e.target.value)}
             placeholder="Last name"
+            className="input-field"
+          />
+        </div>
+      </div>
+    );
+  };
+
+  // Meal Selection Card Component
+  const MealSelectionCard = ({ guest }: { guest: Guest }) => {
+    const guestRsvp = guestRSVPs[guest.id];
+    const mainGuest = guest.isPlusOne ? getMainGuestForPlusOne(guest) : null;
+    const displayName = getDisplayName(guest);
+
+    return (
+      <div className="card">
+        {/* Guest Header */}
+        <div className="flex items-center gap-3 mb-6 flex-wrap">
+          <h3 className="font-display text-lg text-burgundy-900">
+            {displayName}
+          </h3>
+          {guest.isPlusOne && mainGuest && (
+            <GuestOfBadge mainGuestName={mainGuest.firstName} />
+          )}
+          <InvitationTypeBadge invitedToCeremony={guest.invitedToCeremony} />
+        </div>
+
+        {/* Starter Section */}
+        <div className="mb-6">
+          <div className="flex items-center gap-2 mb-3">
+            <h4 className="font-medium text-gray-800">Starter</h4>
+            {wasPreFilled(guest.id, 'starterCheese') && <PreviouslySavedLabel />}
+          </div>
+          
+          <div className="bg-cream-50 rounded-lg p-4 mb-3">
+            <p className="font-medium text-burgundy-900">{MENU.starter.name}</p>
+            <p className="text-sm text-gray-600 mt-1">{MENU.starter.description}</p>
+          </div>
+
+          {/* Cheese Option */}
+          <div className="border border-burgundy-100 rounded-lg p-4">
+            <div className="flex items-start justify-between gap-3 flex-wrap">
+              <div className="flex-1">
+                <p className="font-medium text-burgundy-800">Would you like cheese?</p>
+                <p className="text-sm text-gray-600 mt-1">{MENU.starter.cheeseOption.description}</p>
+              </div>
+              <div className="flex gap-2 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => updateGuestRSVP(guest.id, 'starterCheese', true)}
+                  className={`px-4 py-2 rounded text-sm font-medium transition-colors ${
+                    guestRsvp?.starterCheese === true
+                      ? 'bg-burgundy-900 text-white'
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  }`}
+                >
+                  With cheese
+                </button>
+                <button
+                  type="button"
+                  onClick={() => updateGuestRSVP(guest.id, 'starterCheese', false)}
+                  className={`px-4 py-2 rounded text-sm font-medium transition-colors ${
+                    guestRsvp?.starterCheese === false
+                      ? 'bg-burgundy-900 text-white'
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  }`}
+                >
+                  Without cheese
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Main Course Section */}
+        <div className="mb-6">
+          <div className="flex items-center gap-2 mb-3">
+            <h4 className="font-medium text-gray-800">Main Course</h4>
+            {wasPreFilled(guest.id, 'mealChoice') && <PreviouslySavedLabel />}
+          </div>
+
+          <div className="space-y-3">
+            {MENU.mains.map((main) => (
+              <button
+                key={main.id}
+                type="button"
+                onClick={() => updateGuestRSVP(guest.id, 'mealChoice', main.id)}
+                className={`w-full text-left rounded-lg p-4 border-2 transition-all ${
+                  guestRsvp?.mealChoice === main.id
+                    ? 'border-burgundy-900 bg-burgundy-50'
+                    : 'border-gray-200 hover:border-burgundy-200 hover:bg-cream-50'
+                }`}
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <p className="font-medium text-burgundy-900">{main.name}</p>
+                      {main.isVegetarian && (
+                        <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full">
+                          Vegetarian
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-sm text-gray-600 mt-1">{main.description}</p>
+                    <div className="mt-2 flex flex-wrap gap-1">
+                      {main.sides.map((side, idx) => (
+                        <span
+                          key={idx}
+                          className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded"
+                        >
+                          {side}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                  <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 mt-1 ${
+                    guestRsvp?.mealChoice === main.id
+                      ? 'border-burgundy-900 bg-burgundy-900'
+                      : 'border-gray-300'
+                  }`}>
+                    {guestRsvp?.mealChoice === main.id && (
+                      <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                      </svg>
+                    )}
+                  </div>
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Dessert Info */}
+        <div className="mb-6">
+          <h4 className="font-medium text-gray-800 mb-3">Dessert</h4>
+          <div className="bg-cream-50 rounded-lg p-4">
+            <p className="font-medium text-burgundy-900">{MENU.dessert.name}</p>
+            <p className="text-sm text-gray-600 mt-1">{MENU.dessert.description}</p>
+          </div>
+        </div>
+
+        {/* Dietary Requirements */}
+        <div>
+          <div className="flex items-center gap-2 mb-2">
+            <label className="block text-sm font-medium text-gray-700">
+              Dietary Requirements or Allergies
+            </label>
+            {wasPreFilled(guest.id, 'dietaryRequirements') && <PreviouslySavedLabel />}
+          </div>
+          <input
+            type="text"
+            value={guestRsvp?.dietaryRequirements || ''}
+            onChange={(e) => updateGuestRSVP(guest.id, 'dietaryRequirements', e.target.value)}
+            placeholder="Please let us know of any allergies or dietary requirements"
             className="input-field"
           />
         </div>
@@ -673,13 +869,40 @@ export default function RSVP() {
                                 <GuestOfBadge mainGuestName={mainGuest.firstName} />
                               )}
                             </div>
+                            
+                            {/* Cheese selection */}
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs text-gray-500">Cheese:</span>
+                              <div className="flex gap-1">
+                                <button
+                                  type="button"
+                                  onClick={() => updateGuestRSVP(guest.id, 'starterCheese', true)}
+                                  className={`px-2 py-0.5 rounded text-xs font-medium ${
+                                    guestRsvp?.starterCheese === true ? 'bg-burgundy-900 text-white' : 'bg-gray-100 text-gray-600'
+                                  }`}
+                                >
+                                  Yes
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => updateGuestRSVP(guest.id, 'starterCheese', false)}
+                                  className={`px-2 py-0.5 rounded text-xs font-medium ${
+                                    guestRsvp?.starterCheese === false ? 'bg-burgundy-900 text-white' : 'bg-gray-100 text-gray-600'
+                                  }`}
+                                >
+                                  No
+                                </button>
+                              </div>
+                            </div>
+
+                            {/* Main selection */}
                             <select
                               value={guestRsvp?.mealChoice || ''}
                               onChange={(e) => updateGuestRSVP(guest.id, 'mealChoice', e.target.value)}
                               className="w-full px-2 py-1 text-sm border border-gray-300 rounded"
                             >
-                              <option value="">Select meal</option>
-                              {WEDDING_CONFIG.mealOptions.map((option) => (
+                              <option value="">Select main</option>
+                              {MENU.mains.map((option) => (
                                 <option key={option.id} value={option.id}>
                                   {option.name}
                                 </option>
@@ -698,27 +921,26 @@ export default function RSVP() {
                     </div>
                   ) : (
                     // Read-only meals summary
-                    <div className="space-y-2">
+                    <div className="space-y-3">
                       {getAttendingGuests().map((guest) => {
                         const rsvp = guestRSVPs[guest.id];
                         const mainGuest = guest.isPlusOne ? getMainGuestForPlusOne(guest) : null;
                         
                         return (
                           <div key={guest.id} className={`text-sm ${guest.isPlusOne ? 'ml-4 pl-4 border-l-2 border-purple-200' : ''}`}>
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-2">
-                                <span className="text-gray-700">{getDisplayName(guest)}</span>
-                                {guest.isPlusOne && mainGuest && (
-                                  <GuestOfBadge mainGuestName={mainGuest.firstName} />
-                                )}
-                              </div>
-                              <span className="text-gray-600">{getMealOptionName(rsvp?.mealChoice)}</span>
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className="font-medium text-gray-700">{getDisplayName(guest)}</span>
+                              {guest.isPlusOne && mainGuest && (
+                                <GuestOfBadge mainGuestName={mainGuest.firstName} />
+                              )}
                             </div>
-                            {rsvp?.dietaryRequirements && (
-                              <p className="text-gray-500 text-xs mt-0.5">
-                                Dietary: {rsvp.dietaryRequirements}
-                              </p>
-                            )}
+                            <div className="text-gray-600 space-y-0.5">
+                              <p>Bruschetta: {rsvp?.starterCheese === true ? 'With cheese' : rsvp?.starterCheese === false ? 'Without cheese' : 'Not selected'}</p>
+                              <p>Main: {getMealOptionName(rsvp?.mealChoice)}</p>
+                              {rsvp?.dietaryRequirements && (
+                                <p className="text-gray-500 text-xs">Dietary: {rsvp.dietaryRequirements}</p>
+                              )}
+                            </div>
                           </div>
                         );
                       })}
@@ -1115,102 +1337,22 @@ export default function RSVP() {
                   </p>
                 </div>
 
+                {/* Menu Overview */}
+                <div className="card mb-8 bg-cream-50">
+                  <h3 className="font-display text-lg text-burgundy-900 mb-4 text-center">
+                    Wedding Breakfast Menu
+                  </h3>
+                  <div className="text-center text-gray-600 text-sm space-y-2">
+                    <p><strong>Starter:</strong> {MENU.starter.name}</p>
+                    <p><strong>Mains:</strong> Choice of {MENU.mains.map(m => m.name).join(', ')}</p>
+                    <p><strong>Dessert:</strong> {MENU.dessert.name}</p>
+                  </div>
+                </div>
+
                 <div className="space-y-6">
-                  {getAttendingGuests().map((guest) => {
-                    const displayName = getDisplayName(guest);
-                    const guestRsvp = guestRSVPs[guest.id];
-                    const isEditingDietaryField = editingDietary[guest.id];
-                    const mainGuest = guest.isPlusOne ? getMainGuestForPlusOne(guest) : null;
-
-                    return (
-                      <div key={guest.id} className="card">
-                        <div className="flex items-center gap-3 mb-4 flex-wrap">
-                          <h3 className="font-display text-lg text-burgundy-900">
-                            {displayName}
-                          </h3>
-                          {guest.isPlusOne && mainGuest && (
-                            <GuestOfBadge mainGuestName={mainGuest.firstName} />
-                          )}
-                          <InvitationTypeBadge invitedToCeremony={guest.invitedToCeremony} />
-                        </div>
-
-                        <div className="space-y-4">
-                          {/* Meal Choice */}
-                          <div>
-                            <div className="flex items-center gap-2 mb-2">
-                              <label className="block text-sm font-medium text-gray-700">
-                                Meal Choice
-                              </label>
-                              {wasPreFilled(guest.id, 'mealChoice') && (
-                                <PreviouslySavedLabel />
-                              )}
-                            </div>
-                            <select
-                              value={guestRsvp?.mealChoice || ''}
-                              onChange={(e) => updateGuestRSVP(guest.id, 'mealChoice', e.target.value)}
-                              className="input-field"
-                            >
-                              <option value="">Select a meal option</option>
-                              {WEDDING_CONFIG.mealOptions.map((option) => (
-                                <option key={option.id} value={option.id}>
-                                  {option.name} - {option.description}
-                                </option>
-                              ))}
-                            </select>
-                          </div>
-
-                          {/* Dietary Requirements with inline edit for returning users */}
-                          {isReturningUser && guestRsvp?.dietaryRequirements && !isEditingDietaryField ? (
-                            <div className="flex items-start justify-between gap-4 p-3 bg-gray-50 rounded-lg">
-                              <div className="flex-1">
-                                <div className="flex items-center gap-2 mb-1">
-                                  <span className="text-sm font-medium text-gray-700">Dietary Requirements</span>
-                                  <PreviouslySavedLabel />
-                                </div>
-                                <p className="text-gray-600">{guestRsvp.dietaryRequirements}</p>
-                              </div>
-                              <button
-                                type="button"
-                                onClick={() => setEditingDietary(prev => ({ ...prev, [guest.id]: true }))}
-                                className="text-sm text-burgundy-700 hover:text-burgundy-900 font-medium shrink-0"
-                              >
-                                Edit
-                              </button>
-                            </div>
-                          ) : (
-                            <div>
-                              <div className="flex items-center justify-between mb-2">
-                                <div className="flex items-center gap-2">
-                                  <label className="block text-sm font-medium text-gray-700">
-                                    Dietary Requirements
-                                  </label>
-                                  {wasPreFilled(guest.id, 'dietaryRequirements') && isEditingDietaryField && (
-                                    <PreviouslySavedLabel />
-                                  )}
-                                </div>
-                                {isReturningUser && isEditingDietaryField && (
-                                  <button
-                                    type="button"
-                                    onClick={() => setEditingDietary(prev => ({ ...prev, [guest.id]: false }))}
-                                    className="text-sm text-gray-500 hover:text-gray-700"
-                                  >
-                                    Done
-                                  </button>
-                                )}
-                              </div>
-                              <input
-                                type="text"
-                                value={guestRsvp?.dietaryRequirements || ''}
-                                onChange={(e) => updateGuestRSVP(guest.id, 'dietaryRequirements', e.target.value)}
-                                placeholder="Any allergies or dietary requirements?"
-                                className="input-field"
-                              />
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })}
+                  {getAttendingGuests().map((guest) => (
+                    <MealSelectionCard key={guest.id} guest={guest} />
+                  ))}
                 </div>
 
                 {error && (

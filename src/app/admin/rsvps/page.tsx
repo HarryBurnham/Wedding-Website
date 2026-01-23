@@ -12,6 +12,7 @@ interface GuestDetail {
   invitedToCeremony: boolean;
   invitedToReception: boolean;
   attending: boolean | null;
+  starterCheese: boolean | null;
   mealChoice: string | null;
   dietaryRequirements: string | null;
   plusOneFirstName: string | null;
@@ -35,6 +36,18 @@ interface PartyRSVP {
   recipeTitle: string | null;
   recipeText: string | null;
 }
+
+// Meal name mapping
+const MEAL_NAMES: { [key: string]: string } = {
+  beef: 'Roast Beef',
+  chicken: 'Roast Chicken',
+  vegetarian: 'Mushroom Wellington',
+};
+
+const getMealDisplayName = (mealChoice: string | null): string => {
+  if (!mealChoice) return '';
+  return MEAL_NAMES[mealChoice] || mealChoice;
+};
 
 export default function AdminRSVPs() {
   const [rsvps, setRsvps] = useState<PartyRSVP[]>([]);
@@ -71,7 +84,7 @@ export default function AdminRSVPs() {
   const totalPending = rsvps.reduce((sum, r) => sum + r.pendingCount, 0);
 
   const exportRSVPs = () => {
-    const headers = ['Party', 'Guest Name', 'Invitation Type', 'Plus One?', 'Attending', 'Meal', 'Dietary', 'Song Request'];
+    const headers = ['Party', 'Guest Name', 'Invitation Type', 'Plus One?', 'Attending', 'Bruschetta', 'Main Course', 'Dietary', 'Song Request'];
     const rows: string[][] = [];
 
     rsvps.forEach(party => {
@@ -82,7 +95,8 @@ export default function AdminRSVPs() {
           guest.invitedToCeremony ? 'All Day' : 'Evening Only',
           guest.isPlusOne ? 'Yes' : 'No',
           guest.attending === true ? 'Yes' : guest.attending === false ? 'No' : 'Pending',
-          guest.mealChoice || '',
+          guest.starterCheese === true ? 'With cheese' : guest.starterCheese === false ? 'Without cheese' : '',
+          getMealDisplayName(guest.mealChoice),
           guest.dietaryRequirements || '',
           party.songRequest || '',
         ]);
@@ -230,11 +244,46 @@ export default function AdminRSVPs() {
                            guest.attending === false ? '✗ Not Attending' : '⏳ Pending'}
                         </span>
                       </div>
-                      {guest.attending && (guest.mealChoice || guest.dietaryRequirements) && (
-                        <div className="mt-2 text-sm text-gray-600">
-                          {guest.mealChoice && <span>Meal: {guest.mealChoice}</span>}
-                          {guest.mealChoice && guest.dietaryRequirements && <span className="mx-2">•</span>}
-                          {guest.dietaryRequirements && <span>Dietary: {guest.dietaryRequirements}</span>}
+                      
+                      {/* Meal details - only show if attending */}
+                      {guest.attending && (guest.starterCheese !== null || guest.mealChoice || guest.dietaryRequirements) && (
+                        <div className="mt-2 text-sm text-gray-600 space-y-1">
+                          {/* Starter */}
+                          {guest.starterCheese !== null && (
+                            <div className="flex items-center gap-2">
+                              <span className="text-gray-400">Bruschetta:</span>
+                              <span className={`px-2 py-0.5 rounded text-xs ${
+                                guest.starterCheese 
+                                  ? 'bg-yellow-100 text-yellow-700' 
+                                  : 'bg-gray-100 text-gray-600'
+                              }`}>
+                                {guest.starterCheese ? '🧀 With cheese' : 'Without cheese'}
+                              </span>
+                            </div>
+                          )}
+                          
+                          {/* Main course */}
+                          {guest.mealChoice && (
+                            <div className="flex items-center gap-2">
+                              <span className="text-gray-400">Main:</span>
+                              <span className={`px-2 py-0.5 rounded text-xs ${
+                                guest.mealChoice === 'beef' ? 'bg-red-100 text-red-700' :
+                                guest.mealChoice === 'chicken' ? 'bg-orange-100 text-orange-700' :
+                                guest.mealChoice === 'vegetarian' ? 'bg-green-100 text-green-700' :
+                                'bg-gray-100 text-gray-600'
+                              }`}>
+                                {getMealDisplayName(guest.mealChoice)}
+                              </span>
+                            </div>
+                          )}
+                          
+                          {/* Dietary requirements */}
+                          {guest.dietaryRequirements && (
+                            <div className="flex items-center gap-2">
+                              <span className="text-gray-400">Dietary:</span>
+                              <span className="text-gray-600">{guest.dietaryRequirements}</span>
+                            </div>
+                          )}
                         </div>
                       )}
                     </div>

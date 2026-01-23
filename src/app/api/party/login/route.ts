@@ -80,6 +80,7 @@ export async function POST(request: NextRequest) {
     (existingRsvps ?? []).forEach(rsvp => {
       rsvpMap[rsvp.guest_id] = {
         attending: rsvp.attending,
+        starterCheese: rsvp.starter_cheese,
         mealChoice: rsvp.meal_choice,
         dietaryRequirements: rsvp.dietary_requirements,
         plusOneFirstName: rsvp.plus_one_first_name,

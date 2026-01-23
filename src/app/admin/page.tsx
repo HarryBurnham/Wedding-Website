@@ -13,8 +13,20 @@ interface Stats {
   totalPending: number;
   allDayAttending: number;
   eveningOnlyAttending: number;
+  starterCounts: {
+    withCheese: number;
+    withoutCheese: number;
+    notSelected: number;
+  };
   mealCounts: { [key: string]: number };
 }
+
+// Meal name mapping
+const MEAL_NAMES: { [key: string]: string } = {
+  beef: 'Roast Beef',
+  chicken: 'Roast Chicken',
+  vegetarian: 'Mushroom Wellington',
+};
 
 export default function AdminDashboard() {
   const [stats, setStats] = useState<Stats | null>(null);
@@ -54,12 +66,16 @@ export default function AdminDashboard() {
     totalPending: 0,
     allDayAttending: 0,
     eveningOnlyAttending: 0,
+    starterCounts: { withCheese: 0, withoutCheese: 0, notSelected: 0 },
     mealCounts: {},
   };
 
   const responseRate = s.totalGuests > 0 
     ? Math.round(((s.totalAttending + s.totalNotAttending) / s.totalGuests) * 100) 
     : 0;
+
+  const hasStarters = s.starterCounts && (s.starterCounts.withCheese > 0 || s.starterCounts.withoutCheese > 0);
+  const hasMeals = Object.keys(s.mealCounts).length > 0;
 
   return (
     <div>
@@ -128,18 +144,66 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      {/* Meal Counts */}
-      {Object.keys(s.mealCounts).length > 0 && (
+      {/* Meal Choices */}
+      {(hasStarters || hasMeals) && (
         <div className="bg-white p-6 rounded-lg shadow-sm mb-8">
           <h3 className="text-lg font-display text-gray-900 mb-4">Meal Choices</h3>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {Object.entries(s.mealCounts).map(([meal, count]) => (
-              <div key={meal} className="text-center p-3 bg-gray-50 rounded">
-                <p className="text-2xl font-display text-burgundy-900">{count}</p>
-                <p className="text-sm text-gray-500 capitalize">{meal}</p>
+          
+          {/* Starter - Bruschetta with cheese option */}
+          {hasStarters && (
+            <div className="mb-6">
+              <h4 className="text-sm font-medium text-gray-700 mb-3">Bruschetta</h4>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                <div className="text-center p-3 bg-yellow-50 rounded border border-yellow-200">
+                  <p className="text-2xl font-display text-yellow-700">{s.starterCounts.withCheese}</p>
+                  <p className="text-sm text-yellow-600">🧀 With cheese</p>
+                </div>
+                <div className="text-center p-3 bg-gray-50 rounded border border-gray-200">
+                  <p className="text-2xl font-display text-gray-700">{s.starterCounts.withoutCheese}</p>
+                  <p className="text-sm text-gray-600">Without cheese</p>
+                </div>
+                {s.starterCounts.notSelected > 0 && (
+                  <div className="text-center p-3 bg-amber-50 rounded border border-amber-200">
+                    <p className="text-2xl font-display text-amber-600">{s.starterCounts.notSelected}</p>
+                    <p className="text-sm text-amber-500">Not selected</p>
+                  </div>
+                )}
               </div>
-            ))}
-          </div>
+            </div>
+          )}
+
+          {/* Main Courses */}
+          {hasMeals && (
+            <div>
+              <h4 className="text-sm font-medium text-gray-700 mb-3">Main Course</h4>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {Object.entries(s.mealCounts).map(([meal, count]) => (
+                  <div 
+                    key={meal} 
+                    className={`text-center p-3 rounded border ${
+                      meal === 'beef' ? 'bg-red-50 border-red-200' :
+                      meal === 'chicken' ? 'bg-orange-50 border-orange-200' :
+                      meal === 'vegetarian' ? 'bg-green-50 border-green-200' :
+                      'bg-gray-50 border-gray-200'
+                    }`}
+                  >
+                    <p className={`text-2xl font-display ${
+                      meal === 'beef' ? 'text-red-700' :
+                      meal === 'chicken' ? 'text-orange-700' :
+                      meal === 'vegetarian' ? 'text-green-700' :
+                      'text-gray-700'
+                    }`}>{count}</p>
+                    <p className={`text-sm ${
+                      meal === 'beef' ? 'text-red-600' :
+                      meal === 'chicken' ? 'text-orange-600' :
+                      meal === 'vegetarian' ? 'text-green-600' :
+                      'text-gray-500'
+                    }`}>{MEAL_NAMES[meal] || meal}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       )}
 
@@ -184,4 +248,3 @@ export default function AdminDashboard() {
     </div>
   );
 }
-

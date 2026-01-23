@@ -33,13 +33,6 @@ export const WEDDING_CONFIG = {
     { time: '00:00', event: 'Leaving' },
   ],
 
-  // Meal options
-  mealOptions: [
-    { id: 'tbc1', name: 'Option 1', description: 'To be confirmed' },
-    { id: 'tbc2', name: 'Option 2', description: 'To be confirmed' },
-    { id: 'tbc3', name: 'Vegetarian Option', description: 'To be confirmed' },
-  ],
-
   // Registry links
   registryLinks: [
     { name: 'Prezola', url: 'https://prezola.com', description: 'Our main gift list' },

@@ -1,5 +1,4 @@
 import { NextResponse } from 'next/server';
-// import { createAdminClient } from '@/lib/supabase';
 import { supabase } from '@/lib/supabase';
 
 export const runtime = 'nodejs';
@@ -7,8 +6,6 @@ export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {
-    // const supabase = createAdminClient();
-
     // Get all parties
     const { data: parties, error: partiesError } = await supabase
       .from('parties')
@@ -84,6 +81,7 @@ export async function GET() {
           invitedToReception: guest.invited_to_reception,
           // RSVP data
           attending: rsvp?.attending ?? null,
+          starterCheese: rsvp?.starter_cheese ?? null,
           mealChoice: rsvp?.meal_choice || null,
           dietaryRequirements: rsvp?.dietary_requirements || null,
           plusOneFirstName: rsvp?.plus_one_first_name || null,

@@ -17,7 +17,12 @@ if (!publicUrl || !publicAnonKey) {
   throw new Error('Missing public Supabase environment variables');
 }
 
-export const supabase = createClient(publicUrl, publicAnonKey);
+export const supabase = createClient(publicUrl, publicAnonKey, {
+  auth: { persistSession: false },
+  global: {
+    fetch: (url, options) => fetch(url, { ...options, cache: 'no-store' }),
+  },
+});
 
 /**
  * Admin Supabase client (SERVER ONLY)

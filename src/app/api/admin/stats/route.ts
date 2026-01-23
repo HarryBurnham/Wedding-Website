@@ -77,6 +77,8 @@ export async function GET() {
       .eq('attending', true)
       .not('meal_choice', 'is', null);
 
+      console.log('Meal data from Supabase:', JSON.stringify(mealData));
+
     const mealCounts: { [key: string]: number } = {};
     mealData?.forEach(r => {
       if (r.meal_choice) {

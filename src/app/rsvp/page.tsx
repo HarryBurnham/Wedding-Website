@@ -50,28 +50,28 @@ const MENU = {
   },
   mains: [
     {
-      id: 'beef',
-      name: 'Roast Beef',
-      description: 'Slow-roasted sirloin of British beef with rich red wine jus',
+      id: 'lamb',
+      name: 'Herb crust Rump of Lamb',
+      description: 'Herb Crust Rump of Lamb',
       sides: ['Roast potatoes', 'Yorkshire pudding', 'Seasonal vegetables', 'Gravy'],
     },
     {
       id: 'chicken',
-      name: 'Roast Chicken',
-      description: 'Free-range chicken breast with sage and onion stuffing',
+      name: 'Pan Roast Chicken Supreme,',
+      description: 'Pan Roast Chicken Supreme',
       sides: ['Roast potatoes', 'Seasonal vegetables', 'Gravy'],
     },
     {
       id: 'vegetarian',
-      name: 'Wild Mushroom Wellington',
-      description: 'Flaky puff pastry filled with wild mushrooms, spinach and goat\'s cheese',
-      sides: ['New potatoes', 'Seasonal vegetables', 'Vegetarian gravy'],
+      name: 'Roast Butternut Squash, Spinach & Mushroom Wellington',
+      description: 'Roast Butternut Squash, Spinach & Mushroom Wellington with Potato Fondant and Romesco Sauce',
+      sides: ['Potato Fondant', 'Romesco Sauce'],
       isVegetarian: true,
     },
   ],
   dessert: {
-    name: 'Wedding Cake',
-    description: 'A slice of our wedding cake served with fresh berries and cream',
+    name: 'Sticky Toffee Pudding',
+    description: 'Sticky Toffee Pudding, Toffee Sauce & Vanilla Ice Cream',
   },
 };
 

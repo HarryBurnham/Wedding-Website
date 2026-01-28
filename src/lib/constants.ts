@@ -62,6 +62,7 @@ export const NAV_LINKS = [
   { href: '/accommodation', label: 'Accommodation & Travel' },
   { href: '/rsvp', label: 'RSVP' },
   { href: '/registry', label: 'Registry' },
+  { href: '/info', label: 'Info' },
   { href: '/faq', label: 'FAQ' },
   { href: '/contact', label: 'Contact' },
 ];

@@ -57,7 +57,7 @@ const MENU = {
     },
     {
       id: 'chicken',
-      name: 'Pan Roast Chicken Supreme,',
+      name: 'Pan Roast Chicken Supreme',
       description: 'Pan Roast Chicken Supreme',
       sides: ['Roast potatoes', 'Seasonal vegetables', 'Gravy'],
     },

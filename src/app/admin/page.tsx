@@ -181,20 +181,20 @@ export default function AdminDashboard() {
                   <div 
                     key={meal} 
                     className={`text-center p-3 rounded border ${
-                      meal === 'beef' ? 'bg-red-50 border-red-200' :
+                      meal === 'lamb' ? 'bg-red-50 border-red-200' :
                       meal === 'chicken' ? 'bg-orange-50 border-orange-200' :
                       meal === 'vegetarian' ? 'bg-green-50 border-green-200' :
                       'bg-gray-50 border-gray-200'
                     }`}
                   >
                     <p className={`text-2xl font-display ${
-                      meal === 'beef' ? 'text-red-700' :
+                      meal === 'lamb' ? 'text-red-700' :
                       meal === 'chicken' ? 'text-orange-700' :
                       meal === 'vegetarian' ? 'text-green-700' :
                       'text-gray-700'
                     }`}>{count}</p>
                     <p className={`text-sm ${
-                      meal === 'beef' ? 'text-red-600' :
+                      meal === 'lamb' ? 'text-red-600' :
                       meal === 'chicken' ? 'text-orange-600' :
                       meal === 'vegetarian' ? 'text-green-600' :
                       'text-gray-500'

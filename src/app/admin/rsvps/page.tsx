@@ -39,9 +39,9 @@ interface PartyRSVP {
 
 // Meal name mapping
 const MEAL_NAMES: { [key: string]: string } = {
-  beef: 'Roast Beef',
-  chicken: 'Roast Chicken',
-  vegetarian: 'Mushroom Wellington',
+  lamb: 'Herb crust Rump of Lamb',
+  chicken: 'Pan Roast Chicken Supreme',
+  vegetarian: 'Roast Butternut Squash, Spinach & Mushroom Wellington',
 };
 
 const getMealDisplayName = (mealChoice: string | null): string => {
@@ -267,7 +267,7 @@ export default function AdminRSVPs() {
                             <div className="flex items-center gap-2">
                               <span className="text-gray-400">Main:</span>
                               <span className={`px-2 py-0.5 rounded text-xs ${
-                                guest.mealChoice === 'beef' ? 'bg-red-100 text-red-700' :
+                                guest.mealChoice === 'lamb' ? 'bg-red-100 text-red-700' :
                                 guest.mealChoice === 'chicken' ? 'bg-orange-100 text-orange-700' :
                                 guest.mealChoice === 'vegetarian' ? 'bg-green-100 text-green-700' :
                                 'bg-gray-100 text-gray-600'

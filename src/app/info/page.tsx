@@ -1,9 +1,8 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
-import Image from 'next/image';
 
 interface DressCodeExample {
   label: string;
@@ -37,9 +36,32 @@ const womensDressCode: DressCodeExample[] = [
   },
 ];
 
+// Food images - update these paths when you have real images
+const starterImage = ''; // e.g., '/images/food/starter.jpg'
+const mainsImages = [
+  ''
+  // '/public/images/food/main-1.jpg',
+  // '/public/images/food/main-2.jpg',
+  // '/public/images/food/main-3.jpg',
+];
+const dessertImage = ''; // e.g., '/images/food/dessert.jpg'
+
 export default function Info() {
+  const [currentMainsIndex, setCurrentMainsIndex] = useState(0);
+
   useEffect(() => {
     document.title = 'Harry & Adia Wedding | Info';
+  }, []);
+
+  // Rotate mains images
+  useEffect(() => {
+    if (mainsImages.length <= 1) return;
+
+    const interval = setInterval(() => {
+      setCurrentMainsIndex((prev) => (prev + 1) % mainsImages.length);
+    }, 3000);
+
+    return () => clearInterval(interval);
   }, []);
 
   return (
@@ -177,11 +199,18 @@ export default function Info() {
             We're excited to share a delicious meal with you. More details coming soon!
           </p>
 
-          {/* Placeholder for food content */}
+          {/* Food cards */}
           <div className="grid md:grid-cols-3 gap-8">
-            {['Canapés', 'Wedding Breakfast', 'Evening Food'].map((item, index) => (
-              <div key={index} className="text-center">
-                <div className="aspect-square bg-cream-200 mb-4 flex items-center justify-center border border-burgundy-100">
+            {/* Starter - single image */}
+            <div className="text-center">
+              <div className="aspect-square bg-cream-200 mb-4 flex items-center justify-center border border-burgundy-100 overflow-hidden">
+                {starterImage ? (
+                  <img 
+                    src={starterImage} 
+                    alt="Starter" 
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
                   <div className="text-center p-4">
                     <svg 
                       className="w-12 h-12 mx-auto text-burgundy-200 mb-2" 
@@ -200,10 +229,81 @@ export default function Info() {
                       Photo
                     </p>
                   </div>
-                </div>
-                <h4 className="font-display text-xl text-burgundy-900">{item}</h4>
+                )}
               </div>
-            ))}
+              <h4 className="font-display text-xl text-burgundy-900">Starter</h4>
+            </div>
+
+            {/* Mains - rotating images */}
+            <div className="text-center">
+              <div className="aspect-square bg-cream-200 mb-4 flex items-center justify-center border border-burgundy-100 overflow-hidden relative">
+                {mainsImages.length > 0 ? (
+                  mainsImages.map((image, index) => (
+                    <img 
+                      key={index}
+                      src={image} 
+                      alt={`Main course ${index + 1}`} 
+                      className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ${
+                        index === currentMainsIndex ? 'opacity-100' : 'opacity-0'
+                      }`}
+                    />
+                  ))
+                ) : (
+                  <div className="text-center p-4">
+                    <svg 
+                      className="w-12 h-12 mx-auto text-burgundy-200 mb-2" 
+                      fill="none" 
+                      stroke="currentColor" 
+                      viewBox="0 0 24 24"
+                    >
+                      <path 
+                        strokeLinecap="round" 
+                        strokeLinejoin="round" 
+                        strokeWidth={1} 
+                        d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" 
+                      />
+                    </svg>
+                    <p className="text-gray-400 text-sm uppercase tracking-widest">
+                      Photo
+                    </p>
+                  </div>
+                )}
+              </div>
+              <h4 className="font-display text-xl text-burgundy-900">Mains</h4>
+            </div>
+
+            {/* Dessert - single image */}
+            <div className="text-center">
+              <div className="aspect-square bg-cream-200 mb-4 flex items-center justify-center border border-burgundy-100 overflow-hidden">
+                {dessertImage ? (
+                  <img 
+                    src={dessertImage} 
+                    alt="Dessert" 
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="text-center p-4">
+                    <svg 
+                      className="w-12 h-12 mx-auto text-burgundy-200 mb-2" 
+                      fill="none" 
+                      stroke="currentColor" 
+                      viewBox="0 0 24 24"
+                    >
+                      <path 
+                        strokeLinecap="round" 
+                        strokeLinejoin="round" 
+                        strokeWidth={1} 
+                        d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" 
+                      />
+                    </svg>
+                    <p className="text-gray-400 text-sm uppercase tracking-widest">
+                      Photo
+                    </p>
+                  </div>
+                )}
+              </div>
+              <h4 className="font-display text-xl text-burgundy-900">Dessert</h4>
+            </div>
           </div>
 
           {/* Dietary note */}
@@ -223,4 +323,3 @@ export default function Info() {
     </main>
   );
 }
-

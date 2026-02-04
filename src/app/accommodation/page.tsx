@@ -36,7 +36,7 @@ export default function TravelAccommodation() {
             <span className="text-burgundy-700">♦</span>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-8">
+          <div className="grid gap-8">
 
             {/* By Car */}
             <div className="card">

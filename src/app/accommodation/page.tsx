@@ -28,7 +28,7 @@ export default function TravelAccommodation() {
 
       {/* Getting There */}
       <section className="py-16 bg-white">
-        <div className="max-w-4xl mx-auto px-6">
+        <div className="max-w-6xl mx-auto px-6">
           <h2 className="font-display text-4xl text-burgundy-900 text-center mb-4">
             Getting There
           </h2>
@@ -54,27 +54,27 @@ export default function TravelAccommodation() {
                 just off the B587. The venue is well connected via the M1, M42, and A42.
               </p>
               <div className="space-y-3 text-sm text-gray-600 mb-4">
-                <div className="flex justify-between border-b border-cream-200 pb-2">
-                  <span className="font-medium">From London</span>
-                  <span>~2 hours via M1 north, exit J23A onto A42</span>
-                </div>
-                <div className="flex justify-between border-b border-cream-200 pb-2">
-                  <span className="font-medium">From Birmingham</span>
-                  <span>~40 mins via M42 north, then A42</span>
-                </div>
-                <div className="flex justify-between border-b border-cream-200 pb-2">
-                  <span className="font-medium">From Manchester</span>
-                  <span>~1 hr 30 mins via M6 south, M42, A42</span>
-                </div>
-                <div className="flex justify-between border-b border-cream-200 pb-2">
-                  <span className="font-medium">From Nottingham</span>
-                  <span>~30 mins via A453 and A42</span>
-                </div>
-                <div className="flex justify-between pb-2">
-                  <span className="font-medium">From Leicester</span>
-                  <span>~30 mins via A50 west</span>
-                </div>
+              <div className="flex justify-between gap-4 border-b border-cream-200 pb-2">
+                <span className="font-medium whitespace-nowrap">From London</span>
+                <span className="text-right">~2 hrs via M1, J23A → A42</span>
               </div>
+              <div className="flex justify-between gap-4 border-b border-cream-200 pb-2">
+                <span className="font-medium whitespace-nowrap">From Birmingham</span>
+                <span className="text-right">~40 mins via M42 → A42</span>
+              </div>
+              <div className="flex justify-between gap-4 border-b border-cream-200 pb-2">
+                <span className="font-medium whitespace-nowrap">From Manchester</span>
+                <span className="text-right">~1 hr 30 mins via M6, M42, A42</span>
+              </div>
+              <div className="flex justify-between gap-4 border-b border-cream-200 pb-2">
+                <span className="font-medium whitespace-nowrap">From Nottingham</span>
+                <span className="text-right">~30 mins via A453 → A42</span>
+              </div>
+              <div className="flex justify-between gap-4 pb-2">
+                <span className="font-medium whitespace-nowrap">From Leicester</span>
+                <span className="text-right">~30 mins via A50 west</span>
+              </div>
+            </div>
               <div className="bg-cream-100 p-4 rounded">
                 <p className="text-sm text-gray-600 mb-4">
                   <strong>Parking:</strong> Free parking is available at the venue. Please use the
@@ -84,7 +84,7 @@ export default function TravelAccommodation() {
                   for wedding guests.
                 </p>
                 <img 
-                  src="/images/staunton-harold-parking-map.jpg" 
+                  src="/images/Staunton_Harold_Parking_Map.jpg" 
                   alt="Parking map showing the private parking area adjacent to the Hall"
                   className="w-full rounded border border-burgundy-100"
                 />
@@ -387,7 +387,7 @@ export default function TravelAccommodation() {
 
 
               {/* Uber/Bolt notice */}
-              <div className="border border-burgundy-100 p-6 rounded-lg bg-cream-50">
+              <div className="md:col-span-2 border border-burgundy-100 p-6 rounded-lg bg-cream-50">
                 <h3 className="font-display text-xl text-burgundy-900 mb-3">
                   Ride-Sharing Apps
                 </h3>

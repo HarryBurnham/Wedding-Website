@@ -38,7 +38,14 @@ const faqs: FAQItem[] = [
   {
     question: 'IS THERE PARKING AVAILABLE?',
     answer:
-      'Yes, there is complimentary parking available at the venue. Please follow signs to the car park upon arrival. For those who prefer not to drive, we recommend booking a taxi in advance – see our Travel page for local taxi numbers.',
+    (
+    <>
+      'Yes, there is complimentary parking available at the venue. Please follow signs to the car park upon arrival. For those who prefer not to drive, we recommend booking a taxi in advance – see our <Link 
+      href= "/accommodation"
+      className="text-burgundy-700 underline hover:text-burgundy-900 transition-colors"
+      >Accommodation & Travel </Link> page for local taxi numbers.',
+    </>
+    )  
   },
   {
     question: 'WILL THERE BE VEGETARIAN/VEGAN OPTIONS?',
@@ -61,7 +68,7 @@ const faqs: FAQItem[] = [
   {
     question: 'WHAT HAPPENS IF IT RAINS?',
     answer:
-      "Don't worry – we have a wet weather contingency plan! The venue has beautiful indoor spaces that will be used if the weather doesn't cooperate. The celebration will go on regardless!",
+      "CHANGE: Don't worry – we have a wet weather contingency plan! The venue has beautiful indoor spaces that will be used if the weather doesn't cooperate. The celebration will go on regardless!",
   },
   {
     question: 'WHEN IS THE RSVP DEADLINE?',

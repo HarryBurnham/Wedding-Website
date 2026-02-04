@@ -14,18 +14,21 @@ interface FAQItem {
 const faqs: FAQItem[] = [
   {
     question: 'WHAT IS THE DRESS CODE?',
-    answer:
-      'We kindly request formal attire. Gentlemen are encouraged to wear suits or smart trousers with a jacket. Ladies may wear formal dresses, gowns, or elegant separates. Please avoid white or ivory as these are reserved for the bride.',
+    answer: (
+      <>
+      We kindly request formal attire. Gentlemen are encouraged to wear suits or smart trousers with a jacket. Ladies may wear formal dresses, gowns, or elegant separates. Please avoid white or ivory as these are reserved for the bride. Please see the 
+      <Link
+        href="/info"
+        className="text-burgundy-700 underline hover:text-burgundy-900 transition-colors"
+      > info </Link> 
+        page for pictures
+      </>
+    )
   },
   {
     question: 'CAN I BRING A PLUS ONE?',
     answer:
-      'Due to venue capacity, we are only able to accommodate those guests named on your invitation. If you have been allocated a plus one, this will be indicated on your RSVP. We hope you understand.',
-  },
-  {
-    question: 'ARE CHILDREN INVITED?',
-    answer:
-      'Whilst we love your little ones, we have chosen to make our wedding an adult-only occasion. We hope this gives you the opportunity to let your hair down and enjoy the celebrations!',
+      'Due to venue capacity, we are only able to accommodate those guests named on your invitation. If you have been allocated a plus one, this will be indicated on your RSVP. We hope you understand. Whilst we love your little ones, this also applies to them. We hope this gives you the opportunity to let your hair down and enjoy the celebrations!',
   },
   {
     question: 'WHAT TIME SHOULD I ARRIVE?',
@@ -40,7 +43,15 @@ const faqs: FAQItem[] = [
   {
     question: 'WILL THERE BE VEGETARIAN/VEGAN OPTIONS?',
     answer:
-      'Absolutely! We will be offering vegetarian and vegan meal options. Please indicate any dietary requirements when you RSVP, and we will ensure you are catered for.',
+    (
+    <>
+      Absolutely! We will be offering vegetarian and vegan meal options. Please indicate any dietary requirements when you RSVP, and we will ensure you are catered for. To see the food items, go to the <Link
+        href="/info"
+        className="text-burgundy-700 underline hover:text-burgundy-900 transition-colors"
+      > info </Link> 
+        page 
+    </>
+    )
   },
   {
     question: 'CAN I TAKE PHOTOS DURING THE CEREMONY?',
@@ -56,7 +67,7 @@ const faqs: FAQItem[] = [
     question: 'WHEN IS THE RSVP DEADLINE?',
     answer: (
       <>
-        Please RSVP by 1st August 2026. This helps us finalise numbers with our
+        Please RSVP by 1st August 2026. This helps us finalize numbers with our
         caterers and ensure everything runs smoothly on the day. You can RSVP{' '}
         <Link
           href="/rsvp"
@@ -84,7 +95,6 @@ const faqs: FAQItem[] = [
     ),
   },
 ];
-//  IS THERE ACCOMMODATION NEARBY? - Some have special rates for wedding guests – please check the page for booking codes.
 
 export default function FAQ() {
   const [openIndex, setOpenIndex] = useState<number | null>(null);

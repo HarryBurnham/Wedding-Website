@@ -3,7 +3,7 @@ import Footer from '@/components/Footer';
 import { WEDDING_CONFIG } from '@/lib/constants';
 
 export const metadata = {
-  title: 'Harry & Adia | Accomodation & Travel',
+  title: 'Harry & Adia | Accommodation & Travel',
 };
 
 export default function TravelAccommodation() {
@@ -50,12 +50,44 @@ export default function TravelAccommodation() {
                 <h3 className="font-display text-xl text-burgundy-900">By Car</h3>
               </div>
               <p className="text-gray-600 mb-4">
-                [Add driving directions here. Include major motorways, estimated journey times from key locations, and any specific turn-by-turn directions for the final approach.]
+                Staunton Harold Hall is located near Ashby-de-la-Zouch in Leicestershire, 
+                just off the B587. The venue is well connected via the M1, M42, and A42.
               </p>
+              <div className="space-y-3 text-sm text-gray-600 mb-4">
+                <div className="flex justify-between border-b border-cream-200 pb-2">
+                  <span className="font-medium">From London</span>
+                  <span>~2 hours via M1 north, exit J23A onto A42</span>
+                </div>
+                <div className="flex justify-between border-b border-cream-200 pb-2">
+                  <span className="font-medium">From Birmingham</span>
+                  <span>~40 mins via M42 north, then A42</span>
+                </div>
+                <div className="flex justify-between border-b border-cream-200 pb-2">
+                  <span className="font-medium">From Manchester</span>
+                  <span>~1 hr 30 mins via M6 south, M42, A42</span>
+                </div>
+                <div className="flex justify-between border-b border-cream-200 pb-2">
+                  <span className="font-medium">From Nottingham</span>
+                  <span>~30 mins via A453 and A42</span>
+                </div>
+                <div className="flex justify-between pb-2">
+                  <span className="font-medium">From Leicester</span>
+                  <span>~30 mins via A50 west</span>
+                </div>
+              </div>
               <div className="bg-cream-100 p-4 rounded">
-                <p className="text-sm text-gray-600">
-                  <strong>Parking:</strong> [Add parking information - is there parking at the venue? Nearby car parks? Any costs?]
+                <p className="text-sm text-gray-600 mb-4">
+                  <strong>Parking:</strong> Free parking is available at the venue. Please use the
+                  <strong> Melbourne Lodge Private Entrance</strong> (shown on the right of the map) 
+                  and follow the drive to the <strong>Private Parking</strong> area adjacent to the Hall. 
+                  Do not use the Ashby Lodge Entrance or the General Parking areas — these are not 
+                  for wedding guests.
                 </p>
+                <img 
+                  src="/images/staunton-harold-parking-map.jpg" 
+                  alt="Parking map showing the private parking area adjacent to the Hall"
+                  className="w-full rounded border border-burgundy-100"
+                />
               </div>
             </div>
 
@@ -70,11 +102,28 @@ export default function TravelAccommodation() {
                 <h3 className="font-display text-xl text-burgundy-900">By Train</h3>
               </div>
               <p className="text-gray-600 mb-4">
-                [Add train information - nearest station, typical journey times from London/other major cities, frequency of trains.]
+                The nearest station is Burton-on-Trent, around 8 miles from the venue. 
+                East Midlands Parkway is also an option at approximately 15 miles away, 
+                with faster connections from London St Pancras (~1 hr 20 mins).
               </p>
+              <div className="space-y-2 text-sm text-gray-600 mb-4">
+                <div className="flex justify-between border-b border-cream-200 pb-2">
+                  <span className="font-medium">From London St Pancras</span>
+                  <span>~1 hr 20 mins to East Midlands Parkway</span>
+                </div>
+                <div className="flex justify-between border-b border-cream-200 pb-2">
+                  <span className="font-medium">From Birmingham New Street</span>
+                  <span>~40 mins to Burton-on-Trent</span>
+                </div>
+                <div className="flex justify-between pb-2">
+                  <span className="font-medium">From Derby</span>
+                  <span>~10 mins to Burton-on-Trent</span>
+                </div>
+              </div>
               <div className="bg-cream-100 p-4 rounded">
                 <p className="text-sm text-gray-600">
-                  <strong>Nearest Station:</strong> [Station name, X miles from venue]
+                  <strong>Nearest Station:</strong> Burton-on-Trent, ~8 miles from venue. 
+                  You'll need a taxi or lift from the station.
                 </p>
               </div>
             </div>
@@ -89,9 +138,28 @@ export default function TravelAccommodation() {
                 </div>
                 <h3 className="font-display text-xl text-burgundy-900">By Air</h3>
               </div>
-              <p className="text-gray-600">
-                [Add information about nearest airports and how to get from there to the venue. Include approximate travel times.]
+              <p className="text-gray-600 mb-4">
+                The closest airport is East Midlands Airport (EMA), just 10 miles from the venue — 
+                around 20 minutes by car or taxi.
               </p>
+              <div className="space-y-2 text-sm text-gray-600">
+                <div className="flex justify-between border-b border-cream-200 pb-2">
+                  <span className="font-medium">East Midlands (EMA)</span>
+                  <span>~20 mins / 10 miles</span>
+                </div>
+                <div className="flex justify-between border-b border-cream-200 pb-2">
+                  <span className="font-medium">Birmingham (BHX)</span>
+                  <span>~50 mins / 35 miles</span>
+                </div>
+                <div className="flex justify-between pb-2">
+                  <span className="font-medium">Manchester (MAN)</span>
+                  <span>~1 hr 30 mins / 70 miles</span>
+                </div>
+                <div className="flex justify-between pb-2">
+                  <span className="font-medium">London Heathrow (LHR)</span>
+                  <span>~2 hrs / 110 miles</span>
+                </div>
+              </div>
             </div>
 
             {/* Sat Nav / Waze Tip */}
@@ -123,7 +191,7 @@ export default function TravelAccommodation() {
                   <div>
                     <p className="text-sm">
                       If you use Waze, it will take you to the correct entrance straight to the house. 
-                      We can’t guarantee where a standard sat nav will take you.
+                      We can't guarantee where a standard sat nav will take you.
                     </p>
                   </div>
                 </div>
@@ -154,65 +222,169 @@ export default function TravelAccommodation() {
               {/* Taxi Company 1 */}
               <div className="border border-burgundy-100 p-6 rounded-lg">
                 <h3 className="font-display text-xl text-burgundy-900 mb-3">
-                  [Taxi Company Name]
+                  Swadlincote Taxis
                 </h3>
                 <div className="space-y-2">
                   <a 
-                    href="tel:01onal123456" 
+                    href="tel:01234123456" 
                     className="flex items-center gap-3 text-burgundy-700 hover:text-burgundy-900 transition-colors"
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                     </svg>
-                    <span className="text-lg">01onal 123456</span>
+                    <span className="text-lg">01283 342425</span>
                   </a>
-                  <p className="text-gray-500 text-sm">
-                    [Add notes - e.g., "24 hour service", "Book in advance recommended"]
-                  </p>
+                  <a 
+                  href="https://www.swadlincotetaxis.co.uk" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-3 text-burgundy-700 hover:text-burgundy-900 transition-colors"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
+                    </svg>
+                    <span className="text-sm">Swadlincote Taxis</span>
+                </a>
                 </div>
               </div>
 
               {/* Taxi Company 2 */}
               <div className="border border-burgundy-100 p-6 rounded-lg">
                 <h3 className="font-display text-xl text-burgundy-900 mb-3">
-                  [Taxi Company Name]
+                  Chads Cars
                 </h3>
                 <div className="space-y-2">
                   <a 
-                    href="tel:01onal654321" 
+                    href="tel:01332 666222" 
                     className="flex items-center gap-3 text-burgundy-700 hover:text-burgundy-900 transition-colors"
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                     </svg>
-                    <span className="text-lg">01onal 654321</span>
+                    <span className="text-lg">01332 666222</span>
                   </a>
-                  <p className="text-gray-500 text-sm">
-                    [Add notes]
-                  </p>
+                  <a 
+                  href="https://www.chadscars-derby.co.uk/" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-3 text-burgundy-700 hover:text-burgundy-900 transition-colors"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
+                    </svg>
+                    <span className="text-sm">Chads Cars Derby</span>
+                </a>
                 </div>
               </div>
 
               {/* Taxi Company 3 */}
               <div className="border border-burgundy-100 p-6 rounded-lg">
                 <h3 className="font-display text-xl text-burgundy-900 mb-3">
-                  [Taxi Company Name]
+                  Malcars of Melbourne
                 </h3>
                 <div className="space-y-2">
                   <a 
-                    href="tel:01onal111222" 
+                    href="tel:01332 865865" 
                     className="flex items-center gap-3 text-burgundy-700 hover:text-burgundy-900 transition-colors"
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                     </svg>
-                    <span className="text-lg">01onal 111222</span>
+                    <span className="text-lg">01332 865865</span>
+                  </a>
+                  <a 
+                  href="https://www.malcarsofmelbourne.co.uk/" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-3 text-burgundy-700 hover:text-burgundy-900 transition-colors"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
+                    </svg>
+                    <span className="text-sm">Malcars Of Melbourne</span>
+                </a>
+                </div>
+              </div>
+
+              {/* Taxi Company 4 */}
+              <div className="border border-burgundy-100 p-6 rounded-lg">
+                <h3 className="font-display text-xl text-burgundy-900 mb-3">
+                  Alpha 25 Cars
+                </h3>
+                <div className="space-y-2">
+                  <a 
+                    href="tel:01332 865865" 
+                    className="flex items-center gap-3 text-burgundy-700 hover:text-burgundy-900 transition-colors"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                    </svg>
+                    <span className="text-lg">01283 229933</span>
+                  </a>
+                  <a 
+                  href="https://alpha25cars.co.uk/" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-3 text-burgundy-700 hover:text-burgundy-900 transition-colors"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
+                    </svg>
+                    <span className="text-sm">Alpha 25 Cars</span>
+                </a>
+                </div>
+              </div>
+
+              {/* Taxi Company 5 */}
+              <div className="border border-burgundy-100 p-6 rounded-lg">
+                <h3 className="font-display text-xl text-burgundy-900 mb-3">
+                  Bloors Private Hire
+                </h3>
+                <div className="space-y-2">
+                  <a 
+                    href="tel:01283 550505" 
+                    className="flex items-center gap-3 text-burgundy-700 hover:text-burgundy-900 transition-colors"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                    </svg>
+                    <span className="text-lg">01283 550505</span>
                   </a>
                   <p className="text-gray-500 text-sm">
-                    [Add notes]
+                    There is no website for this company. They are available 24 hours a day. Located ~ 10 miles from Venue.
                   </p>
                 </div>
               </div>
+
+              {/* Taxi Company 6 */}
+              <div className="border border-burgundy-100 p-6 rounded-lg">
+                <h3 className="font-display text-xl text-burgundy-900 mb-3">
+                 John Port Travel
+                </h3>
+                <div className="space-y-2">
+                  <a 
+                    href="tel:01283 515131" 
+                    className="flex items-center gap-3 text-burgundy-700 hover:text-burgundy-900 transition-colors"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                    </svg>
+                    <span className="text-lg">01283 515131</span>
+                  </a>
+                  <a 
+                  href="https://johnporttravel.com/" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-3 text-burgundy-700 hover:text-burgundy-900 transition-colors"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
+                    </svg>
+                    <span className="text-sm">John Port Travel</span>
+                </a>
+                </div>
+              </div>
+
 
               {/* Uber/Bolt notice */}
               <div className="border border-burgundy-100 p-6 rounded-lg bg-cream-50">
@@ -295,7 +467,7 @@ export default function TravelAccommodation() {
                             </svg>
                             <span className="text-gray-600">{hotel.distanceToVenue} from venue</span>
                           </div>
-                        )}
+                        )} 
 
                         {hotel.priceRange && (
                           <div className="flex items-center gap-3">
@@ -349,7 +521,7 @@ export default function TravelAccommodation() {
             </p>
             <div className="flex flex-wrap justify-center gap-4">
               <a
-                href="https://www.booking.com"
+                href="https://www.booking.com/searchresults.en-gb.html?aid=8128640&label=e692aa33-05c2-4ff5-a5a6-2fdaaeefe3fb&sid=2cffccd209acf19c4d19a81d665b39c6&dest_id=-2588621&dest_type=city&hlrd=14&"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-burgundy-700 hover:text-burgundy-900 transition-colors underline"
@@ -357,7 +529,7 @@ export default function TravelAccommodation() {
                 Booking.com
               </a>
               <a
-                href="https://www.airbnb.co.uk"
+                href="https://www.airbnb.co.uk/s/Staunton-Harold-Hall--Melbourne-Road--Ashby~de~la~Zouch/homes?refinement_paths%5B%5D=%2Fhomes&place_id=ChIJkepDr377eUgRW1K8DeCWbH0&location_bb=QlMkpL%2B4CdpCUyHhv7hiQg%3D%3D&acp_id=t-g-ChIJkepDr377eUgRW1K8DeCWbH0&date_picker_type=calendar&checkin=2026-10-10&checkout=2026-10-11&search_type=autocomplete_click"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-burgundy-700 hover:text-burgundy-900 transition-colors underline"
@@ -365,7 +537,7 @@ export default function TravelAccommodation() {
                 Airbnb
               </a>
               <a
-                href="https://www.tripadvisor.co.uk"
+                href="https://www.tripadvisor.co.uk/Hotels-g503956-Ashby_de_la_Zouch_Leicestershire_England-Hotels.html"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-burgundy-700 hover:text-burgundy-900 transition-colors underline"

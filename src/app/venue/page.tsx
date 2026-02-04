@@ -2,6 +2,7 @@ import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
 import VenuePhotos from '@/components/VenuePhotos';
 import { WEDDING_CONFIG } from '@/lib/constants';
+import Link from 'next/link';
 
 export const metadata = {
   title: 'Harry & Adia | Venue',
@@ -126,7 +127,12 @@ export default function Venue() {
           <p className="text-gray-600">
             We kindly request that guests dress formally for the occasion. 
             Gentlemen are encouraged to wear suits and ladies are welcome to wear 
-            cocktail dresses or formal gowns.
+            cocktail dresses or formal gowns. Please see the 
+              <Link
+              href="/info"
+              className="text-burgundy-700 underline hover:text-burgundy-900 transition-colors"
+            > info </Link> 
+            page for pictures
           </p>
         </div>
       </section>

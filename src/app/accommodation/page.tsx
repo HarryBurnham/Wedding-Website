@@ -81,7 +81,7 @@ export default function TravelAccommodation() {
                   <strong> Melbourne Lodge Private Entrance</strong> (shown on the right of the map) 
                   and follow the drive to the <strong>Private Parking</strong> area adjacent to the Hall. 
                   Do not use the Ashby Lodge Entrance or the General Parking areas — these are not 
-                  for wedding guests.
+                  for wedding guests. Please Note cars can be left at the venue till 16:00 the next day
                 </p>
                 <img 
                   src="/images/Staunton_Harold_Parking_Map.jpg" 

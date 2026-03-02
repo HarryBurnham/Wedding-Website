@@ -25,12 +25,13 @@ export const WEDDING_CONFIG = {
   schedule: [
     { time: '14:30', event: 'Guest Arrival' },
     { time: '15:00', event: 'Ceremony Begins' },
-    { time: '00:00', event: 'Drinks Reception' },
-    { time: '00:00', event: 'Wedding Breakfast' },
+    { time: '15:30', event: 'Drinks Reception' },
+    { time: '17:30', event: 'Wedding Breakfast' },
     { time: '00:00', event: 'Speeches' },
+    { time: '19:30', event: 'Evening Reception' },
+    { time: '19:45', event: 'Evening Guests Arrive'},
     { time: '00:00', event: 'First Dance' },
-    { time: '00:00', event: 'Evening Guests Arrive'},
-    { time: '00:00', event: 'Evening Reception' },
+     { time: '21:00', event: 'Evening food Served'},
     { time: '00:00', event: 'Leaving' },
   ],
 
@@ -95,6 +96,15 @@ export const WEDDING_CONFIG = {
     priceRange: '£104 per night',
     distanceToVenue: '7.4 miles',
   },
+  {
+    name: 'Hilton: East Midlands Airport',
+    description: 'Conveniently located near East Midlands Airport, ideal for guests flying in. Features on-site restaurant, free parking, and a pool.',
+    address: 'M1, Junction, 24 Derby Rd, Derby DE74 2YZ',
+    website: 'https://www.hilton.com/en/hotels/emahnhn-hilton-east-midlands-airport/',
+    phone: '+44 1509 674000',
+    priceRange: '£85',
+    distanceToVenue: '9.7 miles',
+    },
   ],
 
   // RSVP deadline

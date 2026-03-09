@@ -14,12 +14,12 @@ interface DressCodeExample {
 const mensDressCode: DressCodeExample[] = [
   {
     label: 'Navy Suit',
-    description: 'A well-fitted suit in navy, charcoal, or black with a tie.',
+    description: 'Navy suit with a dress shirt and tie – a timeless choice.',
     imagePath: '/images/dress-code/Mens_suit_1.jpg',
   },
   {
     label: 'Green Suit',
-    description: 'A sophisticated option in neutral tones with coordinating waistcoat.',
+    description: 'A warm earth-toned suit with a coordinating waistcoat for added sophistication.',
     imagePath: '/images/dress-code/Mens_suit_2.jpg',
   },
 ];
@@ -27,12 +27,12 @@ const mensDressCode: DressCodeExample[] = [
 const womensDressCode: DressCodeExample[] = [
   {
     label: 'Navy Dress',
-    description: 'An elegant midi or knee-length dress in jewel tones or navy.',
+    description: 'An elegant knee-length wrap dress in navy – simple and sophisticated.',
     imagePath: '/images/dress-code/Womens_dress_1.jpg',
   },
   {
     label: 'Emerald Gown',
-    description: 'A sophisticated full-length gown in elegant fabrics and colours.',
+    description: 'A full-length gown in rich emerald – perfect if you\'d like something more dramatic.',
     imagePath: '/images/dress-code/Womens_dress_2.jpg',
   },
 ];

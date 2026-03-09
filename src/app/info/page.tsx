@@ -3,36 +3,37 @@
 import { useEffect, useState } from 'react';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
+import Image from 'next/image';
 
 interface DressCodeExample {
   label: string;
   description: string;
-  imagePlaceholder: string;
+  imagePath: string;
 }
 
 const mensDressCode: DressCodeExample[] = [
   {
-    label: 'Classic Suit',
+    label: 'Navy Suit',
     description: 'A well-fitted suit in navy, charcoal, or black with a tie.',
-    imagePlaceholder: 'Suit with tie',
+    imagePath: '/images/dress-code/Mens_suit_1.jpg',
   },
   {
-    label: 'Morning Suit',
-    description: 'For those wanting a traditional formal option.',
-    imagePlaceholder: 'Morning suit',
+    label: 'Green Suit',
+    description: 'A sophisticated option in neutral tones with coordinating waistcoat.',
+    imagePath: '/public/images/dress-code/Mens_suit_2.jpg',
   },
 ];
 
 const womensDressCode: DressCodeExample[] = [
   {
-    label: 'Formal Dress',
-    description: 'Midi or full-length dress in elegant fabrics.',
-    imagePlaceholder: 'Formal dress',
+    label: 'Navy Dress',
+    description: 'An elegant midi or knee-length dress in jewel tones or navy.',
+    imagePath: '/images/dress-code/Womens_dress_1.jpg',
   },
   {
-    label: 'Elegant Separates',
-    description: 'A sophisticated blouse with tailored trousers or skirt.',
-    imagePlaceholder: 'Elegant separates',
+    label: 'Emerald Gown',
+    description: 'A sophisticated full-length gown in elegant fabrics and colours.',
+    imagePath: '/public/images/dress-code/womens_dress_2.jpg',
   },
 ];
 
@@ -69,9 +70,8 @@ export default function Info() {
             Dress Code
           </h2>
           <p className="text-center text-gray-600 mb-12 max-w-2xl mx-auto">
-            We kindly request <span className="font-semibold text-burgundy-900">UK formal</span> attire. 
-            Think classic elegance — suits and ties for gentlemen, formal dresses or elegant 
-            separates for ladies. Please avoid white or ivory, as these are reserved for the bride.
+            We kindly ask that you wear a suit or a dress at knee-length or below. 
+            Please avoid white and ivory, as these are reserved for the bride.
           </p>
 
           {/* Men's Examples */}
@@ -82,26 +82,16 @@ export default function Info() {
             <div className="grid md:grid-cols-2 gap-8">
               {mensDressCode.map((item, index) => (
                 <div key={index} className="text-center">
-                  {/* Placeholder image */}
-                  <div className="aspect-[3/4] bg-cream-200 mb-4 flex items-center justify-center border border-burgundy-100">
-                    <div className="text-center p-4">
-                      <svg 
-                        className="w-16 h-16 mx-auto text-burgundy-200 mb-2" 
-                        fill="none" 
-                        stroke="currentColor" 
-                        viewBox="0 0 24 24"
-                      >
-                        <path 
-                          strokeLinecap="round" 
-                          strokeLinejoin="round" 
-                          strokeWidth={1} 
-                          d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" 
-                        />
-                      </svg>
-                      <p className="text-gray-400 text-sm uppercase tracking-widest">
-                        {item.imagePlaceholder}
-                      </p>
-                    </div>
+                  {/* Image */}
+                  <div className="aspect-[3/4] mb-4 overflow-hidden rounded-lg shadow-md">
+                    <Image
+                      src={item.imagePath}
+                      alt={`${item.label} - ${item.description}`}
+                      width={300}
+                      height={400}
+                      className="w-full h-full object-cover"
+                      priority={index === 0}
+                    />
                   </div>
                   <h4 className="font-display text-xl text-burgundy-900 mb-2">{item.label}</h4>
                   <p className="text-gray-600 text-sm">{item.description}</p>
@@ -118,26 +108,16 @@ export default function Info() {
             <div className="grid md:grid-cols-2 gap-8">
               {womensDressCode.map((item, index) => (
                 <div key={index} className="text-center">
-                  {/* Placeholder image */}
-                  <div className="aspect-[3/4] bg-cream-200 mb-4 flex items-center justify-center border border-burgundy-100">
-                    <div className="text-center p-4">
-                      <svg 
-                        className="w-16 h-16 mx-auto text-burgundy-200 mb-2" 
-                        fill="none" 
-                        stroke="currentColor" 
-                        viewBox="0 0 24 24"
-                      >
-                        <path 
-                          strokeLinecap="round" 
-                          strokeLinejoin="round" 
-                          strokeWidth={1} 
-                          d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" 
-                        />
-                      </svg>
-                      <p className="text-gray-400 text-sm uppercase tracking-widest">
-                        {item.imagePlaceholder}
-                      </p>
-                    </div>
+                  {/* Image */}
+                  <div className="aspect-[3/4] mb-4 overflow-hidden rounded-lg shadow-md">
+                    <Image
+                      src={item.imagePath}
+                      alt={`${item.label} - ${item.description}`}
+                      width={300}
+                      height={400}
+                      className="w-full h-full object-cover"
+                      priority={index === 0}
+                    />
                   </div>
                   <h4 className="font-display text-xl text-burgundy-900 mb-2">{item.label}</h4>
                   <p className="text-gray-600 text-sm">{item.description}</p>
@@ -149,9 +129,7 @@ export default function Info() {
           {/* Colour Guidance */}
           <div className="mt-12 p-6 bg-cream-50 border border-burgundy-100 text-center">
             <p className="text-gray-600">
-              <span className="font-semibold text-burgundy-900">Please avoid:</span> Red, white, 
-              burgundy, and trainers. Navy, charcoal, black, emerald, or jewel tones all work 
-              beautifully.
+              <span className="font-semibold text-burgundy-900">Please avoid:</span> red, white, burgundy, all black, and trainers. Navy, charcoal, emerald, and jewel tones work wonderfully.
             </p>
           </div>
         </div>

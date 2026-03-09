@@ -22,6 +22,8 @@ interface Party {
   createdAt: string;
 }
 
+type FilterType = 'all' | 'all-day' | 'evening-only';
+
 export default function AdminGuests() {
   const [parties, setParties] = useState<Party[]>([]);
   const [loading, setLoading] = useState(true);
@@ -33,6 +35,7 @@ export default function AdminGuests() {
   const [error, setError] = useState('');
   const [showExportMenu, setShowExportMenu] = useState(false);
   const [includeIds, setIncludeIds] = useState(false);
+  const [filter, setFilter] = useState<FilterType>('all');
 
   // Edit states
   const [editPartyData, setEditPartyData] = useState<{ party_name: string; password: string }>({ party_name: '', password: '' });
@@ -75,6 +78,21 @@ export default function AdminGuests() {
       setLoading(false);
     }
   };
+
+  // Filter parties based on selected filter
+  const filteredParties = parties.filter(party => {
+    if (filter === 'all-day') {
+      return party.guests.some(g => g.invitedToCeremony);
+    } else if (filter === 'evening-only') {
+      return party.guests.some(g => !g.invitedToCeremony);
+    }
+    return true; // 'all'
+  });
+
+  // Calculate counts
+  const totalGuests = filteredParties.reduce((sum, p) => sum + p.guests.length, 0);
+  const allDayGuests = filteredParties.reduce((sum, p) => sum + p.guests.filter(g => g.invitedToCeremony).length, 0);
+  const eveningOnlyGuests = filteredParties.reduce((sum, p) => sum + p.guests.filter(g => !g.invitedToCeremony).length, 0);
 
   const handleAddParty = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -308,7 +326,7 @@ export default function AdminGuests() {
       : ['Party Name', 'Password', 'Guest Count', 'All Day Guests', 'Evening Guests', 'Created At'];
     
     const rows = [headers];
-    parties.forEach(party => {
+    filteredParties.forEach(party => {
       const allDayCount = party.guests.filter(g => g.invitedToCeremony).length;
       const eveningCount = party.guests.filter(g => !g.invitedToCeremony).length;
       const row = includeIds
@@ -333,7 +351,7 @@ export default function AdminGuests() {
       : ['Party Name', 'First Name', 'Last Name', 'Invitation Type', 'Can Bring +1', 'Is Plus One'];
     
     const rows = [headers];
-    parties.forEach(party => {
+    filteredParties.forEach(party => {
       party.guests.forEach(guest => {
         const row = includeIds
           ? [
@@ -368,17 +386,47 @@ export default function AdminGuests() {
     setShowExportMenu(false);
   };
 
-  const totalGuests = parties.reduce((sum, p) => sum + p.guests.length, 0);
-  const allDayGuests = parties.reduce((sum, p) => sum + p.guests.filter(g => g.invitedToCeremony).length, 0);
-  const eveningOnlyGuests = parties.reduce((sum, p) => sum + p.guests.filter(g => !g.invitedToCeremony).length, 0);
-
   return (
     <div>
+      {/* Filter Buttons */}
+      <div className="mb-6 flex gap-3">
+        <button
+          onClick={() => setFilter('all')}
+          className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+            filter === 'all'
+              ? 'bg-burgundy-900 text-white'
+              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+          }`}
+        >
+          All Parties
+        </button>
+        <button
+          onClick={() => setFilter('all-day')}
+          className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+            filter === 'all-day'
+              ? 'bg-green-600 text-white'
+              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+          }`}
+        >
+          🌅 All Day
+        </button>
+        <button
+          onClick={() => setFilter('evening-only')}
+          className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+            filter === 'evening-only'
+              ? 'bg-indigo-600 text-white'
+              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+          }`}
+        >
+          🌙 Evening Only
+        </button>
+      </div>
+
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-3xl font-display text-gray-900">Parties & Guests</h1>
           <p className="text-gray-500 mt-1">
-            {parties.length} parties • {totalGuests} guests ({allDayGuests} all day, {eveningOnlyGuests} evening only)
+            {filteredParties.length} parties • {totalGuests} guests ({allDayGuests} all day, {eveningOnlyGuests} evening only)
           </p>
         </div>
         <div className="flex gap-4">
@@ -419,7 +467,7 @@ export default function AdminGuests() {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                     </svg>
                     Export Parties
-                    <span className="ml-auto text-xs text-gray-400">{parties.length} rows</span>
+                    <span className="ml-auto text-xs text-gray-400">{filteredParties.length} rows</span>
                   </button>
                   <button
                     onClick={exportGuestsCSV}
@@ -540,12 +588,12 @@ export default function AdminGuests() {
       <div className="space-y-4">
         {loading ? (
           <div className="bg-white p-8 rounded-lg shadow-sm text-center text-gray-500">Loading...</div>
-        ) : parties.length === 0 ? (
+        ) : filteredParties.length === 0 ? (
           <div className="bg-white p-8 rounded-lg shadow-sm text-center text-gray-500">
-            No parties yet. Add your first party to get started.
+            No parties found for this filter.
           </div>
         ) : (
-          parties.map(party => {
+          filteredParties.map(party => {
             const partyAllDay = party.guests.filter(g => g.invitedToCeremony).length;
             const partyEvening = party.guests.filter(g => !g.invitedToCeremony).length;
             const isEditingThisParty = editingParty === party.partyId;

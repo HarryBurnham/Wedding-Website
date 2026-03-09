@@ -20,7 +20,7 @@ const mensDressCode: DressCodeExample[] = [
   {
     label: 'Green Suit',
     description: 'A sophisticated option in neutral tones with coordinating waistcoat.',
-    imagePath: '/public/images/dress-code/Mens_suit_2.jpg',
+    imagePath: '/images/dress-code/Mens_suit_2.jpg',
   },
 ];
 
@@ -33,7 +33,7 @@ const womensDressCode: DressCodeExample[] = [
   {
     label: 'Emerald Gown',
     description: 'A sophisticated full-length gown in elegant fabrics and colours.',
-    imagePath: '/public/images/dress-code/womens_dress_2.jpg',
+    imagePath: '/images/dress-code/Womens_dress_2.jpg',
   },
 ];
 

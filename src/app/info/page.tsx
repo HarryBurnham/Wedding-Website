@@ -127,8 +127,8 @@ export default function Info() {
           </div>
 
           {/* Colour Guidance */}
-          <div className="mt-12 p-6 bg-cream-50 border border-burgundy-100 text-center">
-            <p className="text-gray-600">
+          <div className="mt-12 p-8 bg-cream-50 border border-burgundy-100 text-center">
+            <p className=" text-lg text-gray-600 mb-4">
               <span className="font-semibold text-burgundy-900">Please avoid:</span> red, white, burgundy, all black, and trainers. 
               Navy, charcoal, emerald, and jewel tones work wonderfully. 
               Feel free to bring comfortable trainers to change into after the meal.

@@ -31,7 +31,7 @@ export const WEDDING_CONFIG = {
     { time: '19:30', event: 'Evening Reception' },
     { time: '19:45', event: 'Evening Guests Arrive'},
     { time: '00:00', event: 'First Dance' },
-     { time: '21:00', event: 'Evening food Served'},
+    { time: '21:00', event: 'Evening food Served'},
     { time: '00:00', event: 'Leaving' },
   ],
 

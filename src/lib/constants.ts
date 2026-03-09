@@ -4,7 +4,7 @@ export const WEDDING_CONFIG = {
   weddingDate: new Date('2026-10-10T15:00:00'),
   
   // Contact
-  contactEmail: 'your-email@example.com', // Update this
+  contactEmail: 'harryadiawedding@gmail.com',
 
   venue: {
     name: 'Ceremony & Reception Venue',

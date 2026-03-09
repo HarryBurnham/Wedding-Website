@@ -68,7 +68,9 @@ const faqs: FAQItem[] = [
   {
     question: 'WHAT HAPPENS IF IT RAINS?',
     answer:
-      "CHANGE: Don't worry – we have a wet weather contingency plan! The venue has beautiful indoor spaces that will be used if the weather doesn't cooperate. The celebration will go on regardless!",
+      `Don't worry our ceremony and reception are inside beautiful spaces and views. 
+      If the weather is nice then there is also plenty of green space to enjoy the sun.
+      The celebration will go on regardless!`,
   },
   {
     question: 'WHEN IS THE RSVP DEADLINE?',

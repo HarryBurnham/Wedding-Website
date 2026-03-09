@@ -50,15 +50,8 @@ const faqs: FAQItem[] = [
   {
     question: 'WILL THERE BE VEGETARIAN/VEGAN OPTIONS?',
     answer:
-    (
-    <>
-      Absolutely! We will be offering vegetarian and vegan meal options. Please indicate any dietary requirements when you RSVP, and we will ensure you are catered for. To see the food items, go to the <Link
-        href="/info"
-        className="text-burgundy-700 underline hover:text-burgundy-900 transition-colors"
-      > info </Link> 
-        page 
-    </>
-    )
+      `Absolutely! We will be offering vegetarian and vegan meal options. Please indicate any dietary requirements when you RSVP, and we will ensure you are fully catered for.
+      You will be able to see your options in the RSVP page after logging in`
   },
   {
     question: 'CAN I TAKE PHOTOS DURING THE CEREMONY?',

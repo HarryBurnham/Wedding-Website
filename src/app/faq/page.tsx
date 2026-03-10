@@ -16,12 +16,18 @@ const faqs: FAQItem[] = [
     question: 'WHAT IS THE DRESS CODE?',
     answer: (
       <>
-      We kindly request formal attire. Gentlemen are encouraged to wear suits or smart trousers with a jacket. Ladies may wear formal dresses, gowns, or elegant separates. Please avoid white or ivory as these are reserved for the bride. Please see the 
-      <Link
-        href="/info"
-        className="text-burgundy-700 underline hover:text-burgundy-900 transition-colors"
-      > info </Link> 
-        page for pictures
+        We kindly ask that you wear a suit or a dress at knee-length or below. Please avoid white and ivory, as these are reserved for the bride.
+        <br />
+        <br />
+        Please also avoid red, burgundy, all black, and trainers. Navy, charcoal, emerald, and jewel tones work wonderfully.
+        <br />
+        <br />
+        Feel free to bring comfortable trainers to change into after the meal. For outfit inspiration, see the 
+        <Link
+          href="/info"
+          className="text-burgundy-700 underline hover:text-burgundy-900 transition-colors"
+        > info </Link> 
+        page for pictures.
       </>
     )
   },

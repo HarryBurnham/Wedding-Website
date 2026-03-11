@@ -1,6 +1,7 @@
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
 import { WEDDING_CONFIG } from '@/lib/constants';
+import Link from 'next/link';
 
 export const metadata = {
   title: 'Harry & Adia | Accommodation & Travel',
@@ -81,7 +82,11 @@ export default function TravelAccommodation() {
                   <strong> Melbourne Lodge Private Entrance</strong> (shown on the right of the map) 
                   and follow the drive to the <strong>Private Parking</strong> area adjacent to the Hall. 
                   Do not use the Ashby Lodge Entrance or the General Parking areas — these are not 
-                  for wedding guests. Please Note cars can be left at the venue till 16:00 the next day
+                  for wedding guests. Please Note cars can be left at the venue till 16:00 the next day.
+                  If you need a copy of this diagram please use the <Link 
+                  href= "/contact"
+                  className="text-burgundy-700 underline hover:text-burgundy-900 transition-colors"
+                  >contact </Link> Page.
                 </p>
                 <img 
                   src="/images/Staunton_Harold_Parking_Map.jpg" 

@@ -74,6 +74,16 @@ export default function Info() {
             Please avoid white and ivory, as these are reserved for the bride.
           </p>
 
+                   {/* Colour Guidance */}
+          <div className="mt-12 p-8 bg-cream-50 border-4 border-burgundy-700 text-center rounded-lg shadow-md">
+            <p className=" text-xl text-gray-700 mb-4 font-semibold">
+              <span className="font-bold text-burgundy-900">Please avoid:</span> red, white, burgundy, all black, and trainers. 
+              Navy, charcoal, emerald, and jewel tones work wonderfully. 
+              Feel free to bring comfortable shoes to change into after the meal.
+            </p>
+          </div>
+        </div>
+
           {/* Men's Examples */}
           <div className="mb-16">
             <h3 className="font-display text-2xl text-burgundy-900 mb-6 text-center">
@@ -125,16 +135,6 @@ export default function Info() {
               ))}
             </div>
           </div>
-
-          {/* Colour Guidance */}
-          <div className="mt-12 p-8 bg-cream-50 border-4 border-burgundy-700 text-center rounded-lg shadow-md">
-            <p className=" text-xl text-gray-700 mb-4 font-semibold">
-              <span className="font-bold text-burgundy-900">Please avoid:</span> red, white, burgundy, all black, and trainers. 
-              Navy, charcoal, emerald, and jewel tones work wonderfully. 
-              Feel free to bring comfortable trainers to change into after the meal.
-            </p>
-          </div>
-        </div>
       </section>
 
       {/* Decorative divider */}

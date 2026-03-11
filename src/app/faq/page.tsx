@@ -22,7 +22,7 @@ const faqs: FAQItem[] = [
         Please also avoid red, burgundy, all black, and trainers. Navy, charcoal, emerald, and jewel tones work wonderfully.
         <br />
         <br />
-        Feel free to bring comfortable trainers to change into after the meal. For outfit inspiration, see the 
+        Feel free to bring comfortable shoes to change into after the meal. For outfit inspiration, see the 
         <Link
           href="/info"
           className="text-burgundy-700 underline hover:text-burgundy-900 transition-colors"
@@ -46,7 +46,7 @@ const faqs: FAQItem[] = [
     answer:
     (
     <>
-      'Yes, there is complimentary parking available at the venue. Please follow signs to the car park upon arrival. For those who prefer not to drive, we recommend booking a taxi in advance – see our <Link 
+      'Yes, there is complimentary parking available at the venue, Please see Accommodation & Travel page for diagram. Please follow signs to the car park upon arrival. For those who prefer not to drive, we recommend booking a taxi in advance – see our <Link 
       href= "/accommodation"
       className="text-burgundy-700 underline hover:text-burgundy-900 transition-colors"
       >Accommodation & Travel </Link> page for local taxi numbers.',

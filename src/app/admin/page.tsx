@@ -238,10 +238,10 @@ export default function AdminDashboard() {
           className="bg-white p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow group"
         >
           <h3 className="text-lg font-display text-gray-900 group-hover:text-burgundy-900 transition-colors">
-            Recipe Collection
+            Song Requests
           </h3>
           <p className="text-gray-500 text-sm mt-2">
-            View recipes submitted by guests
+            View song requests submitted by guests
           </p>
         </Link>
       </div>

@@ -127,6 +127,6 @@ export const ADMIN_NAV_LINKS = [
   { href: '/admin', label: 'Dashboard' },
   { href: '/admin/guests', label: 'Guests' },
   { href: '/admin/rsvps', label: 'RSVPs' },
-  { href: '/admin/recipes', label: 'Recipes' },
+  { href: '/admin/songs', label: 'Song Requests' },
   { href: '/admin/messages', label: 'Messages' },
 ];

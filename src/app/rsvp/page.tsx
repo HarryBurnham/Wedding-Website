@@ -34,8 +34,6 @@ interface GuestRSVP {
 
 interface PartyExtras {
   songRequest: string;
-  recipeTitle: string;
-  recipeText: string;
 }
 
 // Menu data - you can move this to constants.ts if preferred
@@ -118,8 +116,6 @@ export default function RSVP() {
   const [guestRSVPs, setGuestRSVPs] = useState<{ [guestId: number]: GuestRSVP }>({});
   const [partyExtras, setPartyExtras] = useState<PartyExtras>({
     songRequest: '',
-    recipeTitle: '',
-    recipeText: '',
   });
   
   // Track if this is a returning user (has existing RSVPs)
@@ -217,8 +213,6 @@ export default function RSVP() {
       if (data.partyExtras) {
         const extras = {
           songRequest: data.partyExtras.songRequest ?? '',
-          recipeTitle: data.partyExtras.recipeTitle ?? '',
-          recipeText: data.partyExtras.recipeText ?? '',
         };
         setPartyExtras(extras);
         setOriginalExtras(JSON.parse(JSON.stringify(extras)));
@@ -372,8 +366,6 @@ export default function RSVP() {
         body: JSON.stringify({
           party_id: party!.partyId,
           song_request: partyExtras.songRequest,
-          recipe_title: partyExtras.recipeTitle,
-          recipe_text: partyExtras.recipeText,
         }),
       });
 
@@ -953,7 +945,7 @@ export default function RSVP() {
             {/* Extras Section */}
             <div className="border border-gray-200 rounded-lg overflow-hidden">
               <div className="bg-gray-50 px-4 py-3 flex items-center justify-between">
-                <h3 className="font-medium text-burgundy-900">Song & Recipe</h3>
+                <h3 className="font-medium text-burgundy-900">Song Request</h3>
                 <button
                   type="button"
                   onClick={() => setEditingSection(editingSection === 'extras' ? null : 'extras')}
@@ -977,26 +969,6 @@ export default function RSVP() {
                         className="w-full px-2 py-1 text-sm border border-gray-300 rounded"
                       />
                     </div>
-                    <div>
-                      <label className="text-sm text-gray-600 mb-1 block">Recipe Name</label>
-                      <input
-                        type="text"
-                        value={partyExtras.recipeTitle}
-                        onChange={(e) => setPartyExtras(prev => ({ ...prev, recipeTitle: e.target.value }))}
-                        placeholder="Recipe name"
-                        className="w-full px-2 py-1 text-sm border border-gray-300 rounded"
-                      />
-                    </div>
-                    <div>
-                      <label className="text-sm text-gray-600 mb-1 block">Recipe</label>
-                      <textarea
-                        value={partyExtras.recipeText}
-                        onChange={(e) => setPartyExtras(prev => ({ ...prev, recipeText: e.target.value }))}
-                        placeholder="Ingredients and instructions..."
-                        rows={4}
-                        className="w-full px-2 py-1 text-sm border border-gray-300 rounded resize-none"
-                      />
-                    </div>
                   </div>
                 ) : (
                   // Read-only extras summary
@@ -1005,13 +977,6 @@ export default function RSVP() {
                       <span className="text-gray-500">Song Request: </span>
                       <span className="text-gray-700">{partyExtras.songRequest || 'None'}</span>
                     </div>
-                    <div>
-                      <span className="text-gray-500">Recipe: </span>
-                      <span className="text-gray-700">{partyExtras.recipeTitle || 'None'}</span>
-                    </div>
-                    {partyExtras.recipeText && (
-                      <p className="text-gray-500 text-xs line-clamp-2">{partyExtras.recipeText}</p>
-                    )}
                   </div>
                 )}
               </div>
@@ -1374,7 +1339,7 @@ export default function RSVP() {
                     onClick={handleMealsNext}
                     className="btn-primary flex-1"
                   >
-                    Next: Song & Recipe
+                    Next: Song Request
                   </button>
                 </div>
               </motion.div>
@@ -1422,67 +1387,6 @@ export default function RSVP() {
                         placeholder="Song title - Artist"
                         className="input-field"
                       />
-                    </>
-                  )}
-                </div>
-
-                {/* Recipe */}
-                <div className="card mb-8">
-                  <h3 className="font-display text-xl text-burgundy-900 mb-4">
-                    📖 Share a Recipe
-                  </h3>
-                  
-                  {isReturningUser && (partyExtras.recipeTitle || partyExtras.recipeText) ? (
-                    <div className="space-y-4">
-                      <EditableField
-                        label="Recipe Name"
-                        value={partyExtras.recipeTitle}
-                        onSave={(value) => setPartyExtras(prev => ({ ...prev, recipeTitle: value }))}
-                        placeholder="e.g. Grandma's Apple Pie"
-                      />
-                      <EditableField
-                        label="Recipe"
-                        value={partyExtras.recipeText}
-                        onSave={(value) => setPartyExtras(prev => ({ ...prev, recipeText: value }))}
-                        placeholder="Ingredients and instructions..."
-                        type="textarea"
-                        rows={6}
-                      />
-                    </div>
-                  ) : (
-                    <>
-                      <p className="text-gray-500 text-sm mb-4">
-                        We'd love to collect recipes from our guests! Please share a favourite 
-                        recipe that means something to you.
-                      </p>
-                      
-                      <div className="space-y-4">
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Recipe Name
-                          </label>
-                          <input
-                            type="text"
-                            value={partyExtras.recipeTitle}
-                            onChange={(e) => setPartyExtras(prev => ({ ...prev, recipeTitle: e.target.value }))}
-                            placeholder="e.g. Grandma's Apple Pie"
-                            className="input-field"
-                          />
-                        </div>
-                        
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Recipe
-                          </label>
-                          <textarea
-                            value={partyExtras.recipeText}
-                            onChange={(e) => setPartyExtras(prev => ({ ...prev, recipeText: e.target.value }))}
-                            placeholder="Ingredients and instructions..."
-                            rows={8}
-                            className="input-field resize-none"
-                          />
-                        </div>
-                      </div>
                     </>
                   )}
                 </div>

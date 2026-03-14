@@ -33,8 +33,6 @@ interface PartyRSVP {
   pendingCount: number;
   guests: GuestDetail[];
   songRequest: string | null;
-  recipeTitle: string | null;
-  recipeText: string | null;
 }
 
 // Meal name mapping
@@ -291,13 +289,10 @@ export default function AdminRSVPs() {
                 </div>
 
                 {/* Song & Recipe */}
-                {(party.songRequest || party.recipeTitle) && (
+                {party.songRequest  && (
                   <div className="mt-4 pt-4 border-t text-sm">
                     {party.songRequest && (
                       <p className="text-gray-600">🎵 Song: {party.songRequest}</p>
-                    )}
-                    {party.recipeTitle && (
-                      <p className="text-gray-600 mt-1">📖 Recipe: {party.recipeTitle}</p>
                     )}
                   </div>
                 )}

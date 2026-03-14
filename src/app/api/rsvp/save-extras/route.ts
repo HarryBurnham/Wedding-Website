@@ -4,7 +4,7 @@ import { supabase } from '@/lib/supabase';
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { party_id, song_request, recipe_title, recipe_text } = body;
+    const { party_id, song_request } = body;
 
     if (!party_id) {
       return NextResponse.json({ error: 'Party ID is required' }, { status: 400 });
@@ -23,8 +23,6 @@ export async function POST(request: NextRequest) {
         .from('party_extras')
         .update({
           song_request: song_request || null,
-          recipe_title: recipe_title || null,
-          recipe_text: recipe_text || null,
           updated_at: new Date().toISOString(),
         })
         .eq('party_id', party_id);
@@ -40,8 +38,6 @@ export async function POST(request: NextRequest) {
         .insert({
           party_id,
           song_request: song_request || null,
-          recipe_title: recipe_title || null,
-          recipe_text: recipe_text || null,
           submitted_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
         });

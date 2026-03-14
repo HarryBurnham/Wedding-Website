@@ -50,8 +50,6 @@ export async function GET() {
       partyId: extra.party_id,
       partyName: partyMap.get(extra.party_id) || 'Unknown',
       guestNames: guestsByPartyId[extra.party_id] || [],
-      recipeTitle: extra.recipe_title,
-      recipeText: extra.recipe_text,
       songRequest: extra.song_request,
       submittedAt: extra.submitted_at,
     })) || [];

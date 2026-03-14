@@ -234,7 +234,7 @@ export default function AdminDashboard() {
         </Link>
 
         <Link
-          href="/admin/recipes"
+          href="/admin/songs"
           className="bg-white p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow group"
         >
           <h3 className="text-lg font-display text-gray-900 group-hover:text-burgundy-900 transition-colors">

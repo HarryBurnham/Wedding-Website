@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useState } from 'react';
 import { NAV_LINKS } from '@/lib/constants';
 import { motion, AnimatePresence } from 'framer-motion';
+import Image from 'next/image';
 
 export default function Navigation() {
   const [isOpen, setIsOpen] = useState(false);
@@ -13,9 +14,16 @@ export default function Navigation() {
       <div className="w-full px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 md:h-20">
           {/* Logo */}
-          <Link href="/" className="font-display text-xl md:text-2xl text-burgundy-900 shrink-0">
-            H <span className="text-burgundy-700">&</span> <span className="text-burgundy-500">A</span>
-          </Link>
+          <Link href="/" className="shrink-0">
+          <Image
+            src="/images/monogram.png"
+            alt="H & A"
+            width={48}
+            height={48}
+            className="h-8 w-auto md:h-10"
+            priority
+          />
+        </Link>
 
           {/* Desktop Navigation */}
           <div className="hidden lg:flex items-center gap-4 xl:gap-6">

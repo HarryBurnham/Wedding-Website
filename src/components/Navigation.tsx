@@ -18,9 +18,9 @@ export default function Navigation() {
           <Image
             src="/images/monogram.png"
             alt="H & A"
-            width={64}
-            height={64}
-            className="h-10 w-auto md:h-12"
+            width={96}
+            height={96}
+            className="h-12 w-auto md:h-14"
             priority
           />
         </Link>

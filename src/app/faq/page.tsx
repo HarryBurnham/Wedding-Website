@@ -46,10 +46,10 @@ const faqs: FAQItem[] = [
     answer:
     (
     <>
-      'Yes, there is complimentary parking available at the venue, Please see Accommodation & Travel page for diagram. Please follow signs to the car park upon arrival. For those who prefer not to drive, we recommend booking a taxi in advance – see our <Link 
+      Yes, there is complimentary parking available at the venue, Please see Accommodation & Travel page for diagram. Please follow signs to the car park upon arrival. For those who prefer not to drive, we recommend booking a taxi in advance – see our <Link 
       href= "/accommodation"
       className="text-burgundy-700 underline hover:text-burgundy-900 transition-colors"
-      >Accommodation & Travel </Link> page for local taxi numbers.',
+      >Accommodation & Travel </Link> page for local taxi numbers.
     </>
     )  
   },

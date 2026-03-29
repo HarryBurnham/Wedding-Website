@@ -16,7 +16,8 @@ const faqs: FAQItem[] = [
     question: 'WHAT IS THE DRESS CODE?',
     answer: (
       <>
-        We kindly ask that you wear a suit or a dress at knee-length or below. Please avoid white and ivory, as these are reserved for the bride.
+        We kindly ask that you wear a suit or a dress that is tea length or longer. Please avoid white and ivory, as these are reserved for the bride.
+        Fascinators are happily welcomed!
         <br />
         <br />
         Please also avoid red, burgundy, all black, and trainers. Navy, charcoal, emerald, and jewel tones work wonderfully.
@@ -39,7 +40,8 @@ const faqs: FAQItem[] = [
   {
     question: 'WHAT TIME SHOULD I ARRIVE?',
     answer:
-      'Please arrive at least 30 minutes before the ceremony begins to allow time to find your seat and settle in. The ceremony will start promptly, so we recommend arriving by 2:30 PM.',
+      `Please arrive at least 30 minutes before the ceremony begins to allow time to find your seat and settle in. The ceremony will start promptly, so we recommend arriving by 14:30.
+      Please be seated by 14:45. Evening guests please arrive at 19:45 `,
   },
   {
     question: 'IS THERE PARKING AVAILABLE?',

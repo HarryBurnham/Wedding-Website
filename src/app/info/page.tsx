@@ -70,8 +70,10 @@ export default function Info() {
             Dress Code
           </h2>
           <p className="text-center text-gray-600 mb-12 max-w-2xl mx-auto">
-            We kindly ask that you wear a suit or a dress at knee-length or below. 
+            We kindly ask for our guests to wear a suit or a dress that is tea length or longer. 
             Please avoid white and ivory, as these are reserved for the bride.
+            Jewel-toned colours are wonderful for the day.
+            Fascinators are happily welcomed!
           </p>
 
                    {/* Colour Guidance */}

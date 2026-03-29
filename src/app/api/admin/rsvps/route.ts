@@ -81,7 +81,6 @@ export async function GET() {
           invitedToReception: guest.invited_to_reception,
           // RSVP data
           attending: rsvp?.attending ?? null,
-          starterCheese: rsvp?.starter_cheese ?? null,
           mealChoice: rsvp?.meal_choice || null,
           dietaryRequirements: rsvp?.dietary_requirements || null,
           plusOneFirstName: rsvp?.plus_one_first_name || null,

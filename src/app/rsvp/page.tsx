@@ -25,7 +25,6 @@ interface Party {
 
 interface GuestRSVP {
   attending: boolean | null;
-  starterCheese: boolean | null;
   mealChoice: string;
   dietaryRequirements: string;
   plusOneFirstName: string;
@@ -40,11 +39,7 @@ interface PartyExtras {
 const MENU = {
   starter: {
     name: 'Bruschetta',
-    description: 'Toasted ciabatta topped with fresh tomatoes, garlic, basil and olive oil',
-    cheeseOption: {
-      name: 'With Cheese',
-      description: 'Add mozzarella to your bruschetta',
-    },
+    description: 'Toasted ciabatta topped with fresh tomatoes, garlic, basil and olive oil and mozzarella',
   },
   mains: [
     {
@@ -144,9 +139,6 @@ export default function RSVP() {
     if (field === 'attending') {
       return original.attending !== null;
     }
-    if (field === 'starterCheese') {
-      return original.starterCheese !== null;
-    }
     return !!original[field];
   };
 
@@ -197,7 +189,6 @@ export default function RSVP() {
         const existingRsvp = data.existingRsvps?.[guest.id];
         initialRSVPs[guest.id] = {
           attending: existingRsvp?.attending ?? null,
-          starterCheese: existingRsvp?.starterCheese ?? null,
           mealChoice: existingRsvp?.mealChoice ?? '',
           dietaryRequirements: existingRsvp?.dietaryRequirements ?? '',
           plusOneFirstName: existingRsvp?.plusOneFirstName ?? '',
@@ -265,8 +256,8 @@ export default function RSVP() {
     return guests.filter(guest => {
       const rsvp = guestRSVPs[guest.id];
       if (!rsvp?.attending) return false;
+      if (!guest.invitedToCeremony) return false;
       
-      // For plus-ones, only show if the main guest is bringing them
       if (guest.isPlusOne) {
         const mainGuest = getMainGuestForPlusOne(guest);
         if (mainGuest) {
@@ -346,7 +337,6 @@ export default function RSVP() {
               })
               .map(([guestId, rsvp]) => ({
                 guest_id: parseInt(guestId),
-                starter_cheese: rsvp.starterCheese,
                 meal_choice: rsvp.mealChoice,
                 dietary_requirements: rsvp.dietaryRequirements,
               })),
@@ -504,50 +494,12 @@ export default function RSVP() {
           <InvitationTypeBadge invitedToCeremony={guest.invitedToCeremony} />
         </div>
 
-        {/* Starter Section */}
+        {/* Starter Info */}
         <div className="mb-6">
-          <div className="flex items-center gap-2 mb-3">
-            <h4 className="font-medium text-gray-800">Starter</h4>
-            {wasPreFilled(guest.id, 'starterCheese') && <PreviouslySavedLabel />}
-          </div>
-          
-          <div className="bg-cream-50 rounded-lg p-4 mb-3">
+          <h4 className="font-medium text-gray-800 mb-3">Starter</h4>
+          <div className="bg-cream-50 rounded-lg p-4">
             <p className="font-medium text-burgundy-900">{MENU.starter.name}</p>
             <p className="text-sm text-gray-600 mt-1">{MENU.starter.description}</p>
-          </div>
-
-          {/* Cheese Option */}
-          <div className="border border-burgundy-100 rounded-lg p-4">
-            <div className="flex items-start justify-between gap-3 flex-wrap">
-              <div className="flex-1">
-                <p className="font-medium text-burgundy-800">Would you like cheese?</p>
-                <p className="text-sm text-gray-600 mt-1">{MENU.starter.cheeseOption.description}</p>
-              </div>
-              <div className="flex gap-2 shrink-0">
-                <button
-                  type="button"
-                  onClick={() => updateGuestRSVP(guest.id, 'starterCheese', true)}
-                  className={`px-4 py-2 rounded text-sm font-medium transition-colors ${
-                    guestRsvp?.starterCheese === true
-                      ? 'bg-burgundy-900 text-white'
-                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                  }`}
-                >
-                  With cheese
-                </button>
-                <button
-                  type="button"
-                  onClick={() => updateGuestRSVP(guest.id, 'starterCheese', false)}
-                  className={`px-4 py-2 rounded text-sm font-medium transition-colors ${
-                    guestRsvp?.starterCheese === false
-                      ? 'bg-burgundy-900 text-white'
-                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                  }`}
-                >
-                  Without cheese
-                </button>
-              </div>
-            </div>
           </div>
         </div>
 
@@ -861,31 +813,6 @@ export default function RSVP() {
                                 <GuestOfBadge mainGuestName={mainGuest.firstName} />
                               )}
                             </div>
-                            
-                            {/* Cheese selection */}
-                            <div className="flex items-center gap-2">
-                              <span className="text-xs text-gray-500">Cheese:</span>
-                              <div className="flex gap-1">
-                                <button
-                                  type="button"
-                                  onClick={() => updateGuestRSVP(guest.id, 'starterCheese', true)}
-                                  className={`px-2 py-0.5 rounded text-xs font-medium ${
-                                    guestRsvp?.starterCheese === true ? 'bg-burgundy-900 text-white' : 'bg-gray-100 text-gray-600'
-                                  }`}
-                                >
-                                  Yes
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={() => updateGuestRSVP(guest.id, 'starterCheese', false)}
-                                  className={`px-2 py-0.5 rounded text-xs font-medium ${
-                                    guestRsvp?.starterCheese === false ? 'bg-burgundy-900 text-white' : 'bg-gray-100 text-gray-600'
-                                  }`}
-                                >
-                                  No
-                                </button>
-                              </div>
-                            </div>
 
                             {/* Main selection */}
                             <select
@@ -927,7 +854,6 @@ export default function RSVP() {
                               )}
                             </div>
                             <div className="text-gray-600 space-y-0.5">
-                              <p>Bruschetta: {rsvp?.starterCheese === true ? 'With cheese' : rsvp?.starterCheese === false ? 'Without cheese' : 'Not selected'}</p>
                               <p>Main: {getMealOptionName(rsvp?.mealChoice)}</p>
                               {rsvp?.dietaryRequirements && (
                                 <p className="text-gray-500 text-xs">Dietary: {rsvp.dietaryRequirements}</p>

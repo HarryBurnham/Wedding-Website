@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
 
     // Update meal choices for each guest
     for (const rsvp of guest_rsvps) {
-      const { guest_id, starter_cheese, meal_choice, dietary_requirements } = rsvp;
+      const { guest_id, meal_choice, dietary_requirements } = rsvp;
 
       // Check if record exists
       const { data: existingRsvp } = await supabase
@@ -26,7 +26,6 @@ export async function POST(request: NextRequest) {
         const { error } = await supabase
           .from('guest_rsvps')
           .update({
-            starter_cheese: starter_cheese ?? null,
             meal_choice: meal_choice || null,
             dietary_requirements: dietary_requirements || null,
             updated_at: new Date().toISOString(),
@@ -43,7 +42,6 @@ export async function POST(request: NextRequest) {
           .from('guest_rsvps')
           .insert({
             guest_id,
-            starter_cheese: starter_cheese ?? null,
             meal_choice: meal_choice || null,
             dietary_requirements: dietary_requirements || null,
             submitted_at: new Date().toISOString(),

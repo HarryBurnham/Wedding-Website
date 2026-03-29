@@ -108,7 +108,7 @@ export const WEDDING_CONFIG = {
   ],
 
   // RSVP deadline
-  rsvpDeadline: new Date('2026-08-01'),
+  rsvpDeadline: new Date('2026-08-22'),
 };
 
 export const NAV_LINKS = [

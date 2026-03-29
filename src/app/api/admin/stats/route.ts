@@ -48,28 +48,6 @@ export async function GET() {
       .eq('attending', true)
       .eq('invited_to_ceremony', false);
 
-    // Get starter cheese counts (bruschetta with/without cheese)
-    const { data: starterData } = await supabase
-      .from('guest_rsvps')
-      .select('starter_cheese')
-      .eq('attending', true);
-
-    const starterCounts = {
-      withCheese: 0,
-      withoutCheese: 0,
-      notSelected: 0,
-    };
-
-    starterData?.forEach(r => {
-      if (r.starter_cheese === true) {
-        starterCounts.withCheese++;
-      } else if (r.starter_cheese === false) {
-        starterCounts.withoutCheese++;
-      } else {
-        starterCounts.notSelected++;
-      }
-    });
-
     // Get meal choice counts
     const { data: mealData } = await supabase
       .from('guest_rsvps')
@@ -107,7 +85,6 @@ export async function GET() {
       totalPending,
       allDayAttending: allDayData?.length || 0,
       eveningOnlyAttending: eveningData?.length || 0,
-      starterCounts,
       mealCounts,
     });
   } catch (error) {
@@ -122,7 +99,6 @@ export async function GET() {
       totalPending: 0,
       allDayAttending: 0,
       eveningOnlyAttending: 0,
-      starterCounts: { withCheese: 0, withoutCheese: 0, notSelected: 0 },
       mealCounts: {},
     });
   }

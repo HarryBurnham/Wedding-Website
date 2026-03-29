@@ -12,7 +12,6 @@ interface GuestDetail {
   invitedToCeremony: boolean;
   invitedToReception: boolean;
   attending: boolean | null;
-  starterCheese: boolean | null;
   mealChoice: string | null;
   dietaryRequirements: string | null;
   plusOneFirstName: string | null;
@@ -93,7 +92,6 @@ export default function AdminRSVPs() {
           guest.invitedToCeremony ? 'All Day' : 'Evening Only',
           guest.isPlusOne ? 'Yes' : 'No',
           guest.attending === true ? 'Yes' : guest.attending === false ? 'No' : 'Pending',
-          guest.starterCheese === true ? 'With cheese' : guest.starterCheese === false ? 'Without cheese' : '',
           getMealDisplayName(guest.mealChoice),
           guest.dietaryRequirements || '',
           party.songRequest || '',
@@ -244,22 +242,8 @@ export default function AdminRSVPs() {
                       </div>
                       
                       {/* Meal details - only show if attending */}
-                      {guest.attending && (guest.starterCheese !== null || guest.mealChoice || guest.dietaryRequirements) && (
+                      {guest.attending && (guest.mealChoice || guest.dietaryRequirements) && (
                         <div className="mt-2 text-sm text-gray-600 space-y-1">
-                          {/* Starter */}
-                          {guest.starterCheese !== null && (
-                            <div className="flex items-center gap-2">
-                              <span className="text-gray-400">Bruschetta:</span>
-                              <span className={`px-2 py-0.5 rounded text-xs ${
-                                guest.starterCheese 
-                                  ? 'bg-yellow-100 text-yellow-700' 
-                                  : 'bg-gray-100 text-gray-600'
-                              }`}>
-                                {guest.starterCheese ? '🧀 With cheese' : 'Without cheese'}
-                              </span>
-                            </div>
-                          )}
-                          
                           {/* Main course */}
                           {guest.mealChoice && (
                             <div className="flex items-center gap-2">

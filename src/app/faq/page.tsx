@@ -67,7 +67,7 @@ const faqs: FAQItem[] = [
   {
     question: 'WHAT HAPPENS IF IT RAINS?',
     answer:
-      `Don't worry our ceremony and reception are inside beautiful spaces and views. 
+      `Don't worry — our ceremony and reception are held in beautiful indoor spaces with stunning views.
       If the weather is nice then there is also plenty of green space to enjoy the sun.
       The celebration will go on regardless!`,
   },
@@ -75,7 +75,7 @@ const faqs: FAQItem[] = [
     question: 'WHEN IS THE RSVP DEADLINE?',
     answer: (
       <>
-        Please RSVP by 1st August 2026. This helps us finalize numbers with our
+        Please RSVP by the 22nd August 2026. This helps us finalize numbers with our
         caterers and ensure everything runs smoothly on the day. You can RSVP{' '}
         <Link
           href="/rsvp"
@@ -91,7 +91,7 @@ const faqs: FAQItem[] = [
     question: 'IS THERE ACCOMMODATION NEARBY?',
     answer: (
       <>
-        Yes! We have compiled a list of nearby hotels and B&Bs on our{' '}
+        Yes! We have compiled a list of nearby hotels on our{' '}
         <Link
           href="/accommodation"
           className="text-burgundy-700 underline hover:text-burgundy-900 transition-colors"

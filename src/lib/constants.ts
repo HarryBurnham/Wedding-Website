@@ -24,6 +24,7 @@ export const WEDDING_CONFIG = {
   // Schedule
   schedule: [
     { time: '14:30', event: 'Guest Arrival' },
+    { time: '14:45', event: 'Guests to be seated' },
     { time: '15:00', event: 'Ceremony Begins' },
     { time: '15:30', event: 'Drinks Reception' },
     { time: '17:00', event: 'Speeches' },

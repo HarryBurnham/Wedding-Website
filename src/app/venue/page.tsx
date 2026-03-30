@@ -125,14 +125,12 @@ export default function Venue() {
           </div>
           <p className="text-xl text-gray-700 mb-4">Formal Attire</p>
           <p className="text-gray-600">
-            We kindly request that guests dress formally for the occasion. 
-            Gentlemen are encouraged to wear suits and ladies are welcome to wear 
-            cocktail dresses or formal gowns. Please see the 
+            We kindly request that guests wear a Suit or a Dress that is tea length or longer. Please see the 
               <Link
               href="/info"
               className="text-burgundy-700 underline hover:text-burgundy-900 transition-colors"
             > info </Link> 
-            page for pictures
+            page for more information and  pictures.   
           </p>
         </div>
       </section>

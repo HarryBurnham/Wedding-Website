@@ -118,7 +118,7 @@ export const NAV_LINKS = [
   { href: '/accommodation', label: 'Accommodation & Travel' },
   { href: '/rsvp', label: 'RSVP' },
   { href: '/registry', label: 'Registry' },
-  { href: '/dress-code', label: 'Info' },
+  { href: '/dress-code', label: 'Dress Code' },
   { href: '/faq', label: 'FAQ' },
   { href: '/contact', label: 'Contact' },
 ];

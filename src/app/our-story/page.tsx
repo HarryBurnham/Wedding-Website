@@ -33,15 +33,12 @@ export default function OurStory() {
             </h2>
             <div className="prose prose-lg max-w-none text-gray-600 leading-relaxed">
               <p className="mb-6">
-                {/* Claude Example: Harry and I first met at university in 2016 during freshers' week at a house party 
-                  in Nottingham. I was immediately drawn to his dry sense of humour and passion for 
-                  ice hockey – he spent half the evening trying to explain the rules of korfball to 
-                  me! We exchanged numbers but didn't talk for weeks. Then, completely by chance, 
-                  we bumped into each other at the Students' Union and decided to grab a coffee. 
-                  That coffee turned into dinner, and we've been inseparable ever since. */}
-                We first met at DMU in 2019 Freshers' week at a Korfball society tryout. 
-                something about snapchat on a Korfball night out. 
-                We've been inseparable since
+                Harry and I first met at De Montfort University in 2019 during a freshers' week Korfball training session, where we were the only new players to join that year. For the first few weeks, we only saw each other at training sessions, where we had a fun time competing to see who could score from the furthest spot and other fun games.
+
+                After a few weeks, we went out for our first team social, where we exchanged details and started chatting. That night was great, and we began hanging out more, going shopping in the city, gaming in common rooms, and taking trips to the pub with friends.
+
+
+                Our relationship started shortly after, luckily just before the COVID lockdowns, and we have been happily together ever since. What started as a chance meeting at training has grown into the life we’re building together today.
               </p>
             </div>
           </div>
@@ -62,17 +59,9 @@ export default function OurStory() {
             </h2>
             <div className="prose prose-lg max-w-none text-gray-600 leading-relaxed">
               <p className="mb-6">
-                {/* Claude Example: Over the past eight years, we've built an incredible life together. We've had 
-                 countless adventures – from watching the Nottingham Panthers play at the Motorpoint 
-                 Arena to exploring cities across Europe during our holidays. We've supported each 
-                 other through career changes (Harry's move into DevOps was a big transition!), 
-                 celebrated promotions, and cheered each other on through challenges. We've discovered 
-                 a shared love of competitive games – screaming at the NHL while watching matches together. But our favourite moments are the simple 
-                 ones: lazy Sunday mornings, planning future trips, and laughing at inside jokes only 
-                 we understand. We genuinely can't wait to marry our best friend. */}
-                Over the past 6 years, we've built an incredible life together. We've had 
-                countless adventures – from watching the Nottingham Panthers play at the Motorpoint 
-                Arena to exploring cities across Europe during our holidays.
+                Over the past 6 years, we have built an incredible life together and grown through so many important moments side by side. We graduated university together and made it through the challenges of the Covid lockdowns, supporting each other every step of the way. We have travelled across Europe and the US, creating memories we’ll always cherish, and have even bought our first home together.
+
+                In between all of that, we have continued playing Korfball, enjoyed going to Nottingham Panthers games, watched countless F1 races, and, most importantly, have simply loved spending time together. It’s the everyday moments, as much as the big milestones, that have made our life together so special.
               </p>
             </div>
           </div>
@@ -93,18 +82,9 @@ export default function OurStory() {
             </h2>
             <div className="prose prose-lg max-w-none text-gray-600 leading-relaxed">
               <p className="mb-6">
-                {/* Claude Example: Harry proposed on a cold December evening in 2024 at Ashby-de-la-Zouch, the location 
-                  that would become so special to us. We'd been looking at venues together (very unromantic, 
-                  I know!), and Harry suggested we visit one more. As we walked through the gardens at 
-                  sunset, he got down on one knee and asked me to marry him. I was completely surprised – 
-                  I thought I'd planned the perfect venue hunt, but he'd managed to keep the most important 
-                  part a secret! Through happy tears, I said yes. We immediately called our parents to tell 
-                  them the news, and we've been in wedding planning mode ever since. Every moment of this 
-                  journey has felt special because we're doing it together. */}
-                Harry proposed on a warm June evening in 2023 in the Mediterranean Sea on a cruise on our way to Santorini. 
-                During sunset, he got down on one knee and asked me to marry him. Surprisingly I didn't cry, I said yes. 
-                We immediately called our parents to tell them the news, and we've been in wedding planning mode ever since. 
-                Every moment of this journey has felt special because we're doing it together.
+                Harry proposed on a warm June evening in 2023, while we were in the Mediterranean Sea on a cruise on our way to Santorini. As the sun was setting, he took me out to one of the decks for photos, and then got down on one knee and asked me to marry him.
+
+                Surprisingly, I didn’t cry, but of course, I said yes. We immediately called our parents to share the news, and we’ve been in wedding planning mode ever since. Every moment of this journey has felt so special, simply because we’re doing it together and we can’t wait for everything still to come.
               </p>
             </div>
           </div>

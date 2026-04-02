@@ -35,30 +35,29 @@ interface PartyExtras {
   songRequest: string;
 }
 
-// Menu data - you can move this to constants.ts if preferred
 const MENU = {
   starter: {
     name: 'Bruschetta',
-    description: 'Toasted ciabatta topped with fresh tomatoes, garlic, basil and olive oil and mozzarella',
+    description: 'Toasted ciabatta topped with fresh tomatoes, garlic, mozzarella, basil and olive oil',
   },
   mains: [
     {
       id: 'lamb',
       name: 'Herb crust Rump of Lamb',
-      description: 'Herb Crust Rump of Lamb',
-      sides: ['Roast potatoes', 'Yorkshire pudding', 'Seasonal vegetables', 'Gravy'],
+      description: 'Herb Crust Rump of Lamb with Garlic Mash, Roasted Vegetables and a Port Jus',
+      sides: ['Garlic Mash', 'Roasted Vegetables', 'Port Jus'],
     },
     {
       id: 'chicken',
       name: 'Pan Roast Chicken Supreme',
-      description: 'Pan Roast Chicken Supreme',
-      sides: ['Roast potatoes', 'Seasonal vegetables', 'Gravy'],
+      description: 'Pan Roast Chicken Supreme with Garlic Mash, Roasted Vegetables and a Mushroom Sauce',
+      sides: ['Garlic Mash', 'Roasted Vegetables', 'Mushroom Sauce'],
     },
     {
       id: 'vegetarian',
       name: 'Roast Butternut Squash, Spinach & Mushroom Wellington',
-      description: 'Roast Butternut Squash, Spinach & Mushroom Wellington with Potato Fondant and Romesco Sauce',
-      sides: ['Potato Fondant', 'Romesco Sauce'],
+      description: 'Roast Butternut Squash, Spinach & Mushroom Wellington with Garlic Mash, Roasted Vegetables and Gravy',
+      sides: ['Garlic Mash', 'Roasted Vegetables', 'Gravy'],
       isVegetarian: true,
     },
   ],

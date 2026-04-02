@@ -32,11 +32,10 @@ export default function OurStory() {
               How We Met
             </h2>
             <div className="prose prose-lg max-w-none text-gray-600 leading-relaxed">
-              <p className="mb-6">
+              <p className="mb-6 text-center">
                 Harry and I first met at De Montfort University in 2019 during a freshers' week Korfball training session, where we were the only new players to join that year. For the first few weeks, we only saw each other at training sessions, where we had a fun time competing to see who could score from the furthest spot and other fun games.
 
                 After a few weeks, we went out for our first team social, where we exchanged details and started chatting. That night was great, and we began hanging out more, going shopping in the city, gaming in common rooms, and taking trips to the pub with friends.
-
 
                 Our relationship started shortly after, luckily just before the COVID lockdowns, and we have been happily together ever since. What started as a chance meeting at training has grown into the life we’re building together today.
               </p>
@@ -58,7 +57,7 @@ export default function OurStory() {
               Our Journey Together
             </h2>
             <div className="prose prose-lg max-w-none text-gray-600 leading-relaxed">
-              <p className="mb-6">
+              <p className="mb-6 text-center">
                 Over the past 6 years, we have built an incredible life together and grown through so many important moments side by side. We graduated university together and made it through the challenges of the Covid lockdowns, supporting each other every step of the way. We have travelled across Europe and the US, creating memories we’ll always cherish, and have even bought our first home together.
 
                 In between all of that, we have continued playing Korfball, enjoyed going to Nottingham Panthers games, watched countless F1 races, and, most importantly, have simply loved spending time together. It’s the everyday moments, as much as the big milestones, that have made our life together so special.
@@ -81,7 +80,7 @@ export default function OurStory() {
               The Proposal
             </h2>
             <div className="prose prose-lg max-w-none text-gray-600 leading-relaxed">
-              <p className="mb-6">
+              <p className="mb-6 text-center">
                 Harry proposed on a warm June evening in 2023, while we were in the Mediterranean Sea on a cruise on our way to Santorini. As the sun was setting, he took me out to one of the decks for photos, and then got down on one knee and asked me to marry him.
 
                 Surprisingly, I didn’t cry, but of course, I said yes. We immediately called our parents to share the news, and we’ve been in wedding planning mode ever since. Every moment of this journey has felt so special, simply because we’re doing it together and we can’t wait for everything still to come.

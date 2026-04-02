@@ -375,9 +375,13 @@ export default function RSVP() {
 
   // Progress indicator
   const ProgressBar = () => {
-    const steps = ['Attendance', 'Meals', 'Extras'];
-    const currentIndex = step === 'attendance' ? 0 : step === 'meals' ? 1 : step === 'extras' ? 2 : 0;
-    
+    const hasMeals = guests.some(g => g.invitedToCeremony);
+    const steps = hasMeals ? ['Attendance', 'Meals', 'Extras'] : ['Attendance', 'Extras'];
+    const currentIndex = step === 'attendance' ? 0
+      : step === 'meals' ? 1
+      : step === 'extras' ? (hasMeals ? 2 : 1)
+      : 0;
+
     if (step === 'login' || step === 'success') return null;
 
     return (

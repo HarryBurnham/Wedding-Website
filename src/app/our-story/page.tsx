@@ -1,5 +1,6 @@
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
+import Image from 'next/image';
 
 export const metadata = {
   title: 'Harry & Adia | Our Story',
@@ -108,15 +109,19 @@ export default function OurStory() {
             </div>
           </div>
 
-          {/* Photo placeholder */}
+          {/* Photo */}
           <div className="mt-16 text-center">
-            <div className="aspect-[4/3] max-w-2xl mx-auto bg-cream-200 flex items-center justify-center border border-burgundy-100">
-              <p className="text-gray-400 text-sm uppercase tracking-widest">
-                Add  engagement photo here
-              </p>
+            <div className="aspect-[4/3] max-w-2xl mx-auto overflow-hidden border border-burgundy-100">
+              <Image
+                src="/images/our-story/us.jpg"
+                alt="Harry and Adia"
+                width={800}
+                height={600}
+                className="w-full h-full object-cover"
+              />
             </div>
           </div>
-        </div>
+          </div>
       </section>
 
       <Footer />

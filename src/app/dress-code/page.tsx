@@ -6,65 +6,38 @@ import Footer from '@/components/Footer';
 import Image from 'next/image';
 
 interface DressCodeExample {
-  label: string;
-  description: string;
   imagePath: string;
 }
 
 const dressCodeExamples: DressCodeExample[] = [
   {
-    label: 'Navy Suit',
-    description: 'Navy suit with a dress shirt and tie – a timeless choice.',
     imagePath: '/images/dress-code/1.jpg',
   },
   {
-    label: 'Green Suit',
-    description: 'A warm earth-toned suit with a coordinating waistcoat for added sophistication.',
     imagePath: '/images/dress-code/2.jpg',
   },
   {
-    label: 'Navy Dress',
-    description: 'An elegant knee-length wrap dress in navy – simple and sophisticated.',
-    imagePath: '/images/dress-code/3.jpg',
-  },
-  {
-    label: 'Emerald Gown',
-    description: 'A full-length gown in rich emerald – perfect if you\'d like something more dramatic.',
     imagePath: '/images/dress-code/4.jpg',
   },
   {
-    label: 'Look 5',
-    description: '',
     imagePath: '/images/dress-code/5.jpg',
   },
   {
-    label: 'Look 6',
-    description: '',
     imagePath: '/images/dress-code/6.jpg',
   },
   {
-    label: 'Look 7',
-    description: '',
     imagePath: '/images/dress-code/7.jpg',
   },
   {
-    label: 'Look 8',
-    description: '',
     imagePath: '/images/dress-code/8.jpg',
   },
   {
-    label: 'Look 9',
-    description: '',
     imagePath: '/images/dress-code/9.jpg',
   },
   {
-    label: 'Look 10',
-    description: '',
     imagePath: '/images/dress-code/10.jpg',
   },
   {
-    label: 'Look 11',
-    description: '',
     imagePath: '/images/dress-code/11.jpg',
   },
 ];
@@ -188,14 +161,6 @@ export default function Info() {
                   <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
                 </svg>
               </button>
-            </div>
-
-            {/* Label + description */}
-            <div className="mt-5 text-center max-w-sm">
-              <h4 className="font-display text-xl text-burgundy-900 mb-1">{current.label}</h4>
-              {current.description && (
-                <p className="text-gray-600 text-sm">{current.description}</p>
-              )}
             </div>
 
             {/* Dot indicators */}

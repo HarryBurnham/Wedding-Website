@@ -48,7 +48,7 @@ export default function Info() {
   const [animating, setAnimating] = useState(false);
 
   useEffect(() => {
-    document.title = 'Harry & Adia Wedding | Info';
+    document.title = 'Harry & Adia Wedding | Dress Code';
   }, []);
 
   const goTo = (index: number, dir: 'next' | 'prev') => {
@@ -143,7 +143,7 @@ export default function Info() {
               >
                 <Image
                   src={current.imagePath}
-                  alt={`${current.label} – ${current.description}`}
+                  alt = {"image"}
                   width={400}
                   height={533}
                   className="w-full h-full object-cover"

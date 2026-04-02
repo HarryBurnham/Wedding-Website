@@ -145,7 +145,11 @@ export default function TravelAccommodation() {
               </div>
               <p className="text-gray-600 mb-4">
                 The closest airport is East Midlands Airport (EMA), just 10 miles from the venue — 
-                around 20 minutes by car or taxi.
+                around 20 minutes by car or taxi. If you are flying into the UK, you will need an ETA. To apply for one  or get more information.
+                <Link
+                href={"https://www.gov.uk/eta"}
+                className="text-burgundy-700 underline hover:text-burgundy-900 transition-colors"
+                > Click Here </Link>
               </p>
               <div className="space-y-2 text-sm text-gray-600">
                 <div className="flex justify-between border-b border-cream-200 pb-2">

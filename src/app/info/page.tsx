@@ -15,12 +15,12 @@ const mensDressCode: DressCodeExample[] = [
   {
     label: 'Navy Suit',
     description: 'Navy suit with a dress shirt and tie – a timeless choice.',
-    imagePath: '/images/dress-code/Mens_suit_1.jpg',
+    imagePath: '/images/dress-code/1.jpg',
   },
   {
     label: 'Green Suit',
     description: 'A warm earth-toned suit with a coordinating waistcoat for added sophistication.',
-    imagePath: '/images/dress-code/Mens_suit_2.jpg',
+    imagePath: '/images/dress-code/2.jpg',
   },
 ];
 
@@ -28,12 +28,12 @@ const womensDressCode: DressCodeExample[] = [
   {
     label: 'Navy Dress',
     description: 'An elegant knee-length wrap dress in navy – simple and sophisticated.',
-    imagePath: '/images/dress-code/Womens_dress_1.jpg',
+    imagePath: '/images/dress-code/3.jpg',
   },
   {
     label: 'Emerald Gown',
     description: 'A full-length gown in rich emerald – perfect if you\'d like something more dramatic.',
-    imagePath: '/images/dress-code/Womens_dress_2.jpg',
+    imagePath: '/images/dress-code/4.jpg',
   },
 ];
 
@@ -76,7 +76,7 @@ export default function Info() {
             Fascinators are happily welcomed!
           </p>
 
-                   {/* Colour Guidance */}
+          {/* Colour Guidance */}
           <div className="mt-12 p-8 bg-cream-50 border-4 border-burgundy-700 text-center rounded-lg shadow-md">
             <p className=" text-xl text-gray-700 mb-4 font-semibold">
               <span className="font-bold text-burgundy-900">Please avoid:</span> red, white, burgundy, all black, and trainers. 

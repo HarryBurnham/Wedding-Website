@@ -104,6 +104,18 @@ const faqs: FAQItem[] = [
       </>
     ),
   },
+  {
+    question: 'DO I REQUIRE A VISA TO ENTER THE UK',
+    answer: (
+      <>
+        No! You don't need a visa to enter the UK but you do require an ETA which costs £20 and lasts 6 months. To purchase one or get more information. Please
+        <Link
+                href={"https://www.gov.uk/eta"}
+                className="text-burgundy-700 underline hover:text-burgundy-900 transition-colors"
+                > Click Here </Link>
+      </>
+    ),
+  },
 ];
 
 export default function FAQ() {

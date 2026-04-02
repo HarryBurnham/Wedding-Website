@@ -109,10 +109,10 @@ export default function Info() {
       <section className="pt-32 pb-16 bg-cream-100">
         <div className="max-w-4xl mx-auto px-6 text-center">
           <h1 className="font-display text-5xl md:text-6xl text-burgundy-900 mb-6">
-            Wedding Info
+            Dress Code
           </h1>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-            A few extra details to help you prepare for our special day.
+            Inspiration for what to wear on the day
           </p>
           <div className="divider">
             <span className="text-burgundy-700">♦</span>

@@ -27,7 +27,7 @@ const faqs: FAQItem[] = [
         <Link
           href="/info"
           className="text-burgundy-700 underline hover:text-burgundy-900 transition-colors"
-        > info </Link> 
+        > dress code </Link> 
         page for pictures.
       </>
     )

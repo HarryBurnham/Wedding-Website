@@ -38,7 +38,7 @@ interface PartyExtras {
 const MENU = {
   starter: {
     name: 'Bruschetta',
-    description: 'Toasted ciabatta topped with fresh tomatoes, garlic, mozzarella, basil and olive oil',
+    description: 'Toasted ciabatta topped with fresh Tomatoes, Garlic, Mozzarella, Basil and Olive Oil',
   },
   mains: [
     {

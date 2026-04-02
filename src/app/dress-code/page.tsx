@@ -96,9 +96,6 @@ export default function Info() {
       {/* Dress Code Section */}
       <section className="py-16 bg-white">
         <div className="max-w-5xl mx-auto px-6">
-          <h2 className="font-display text-3xl md:text-4xl text-burgundy-900 mb-4 text-center">
-            Dress Code
-          </h2>
           <p className="text-center text-gray-600 mb-12 max-w-2xl mx-auto">
             We kindly ask for our guests to wear a suit or a dress that is tea length or longer.
             Please avoid white and ivory, as these are reserved for the bride.

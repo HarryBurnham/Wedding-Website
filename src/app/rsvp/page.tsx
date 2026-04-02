@@ -1200,14 +1200,14 @@ export default function RSVP() {
                   </div>
                 )}
 
-                <button
-                  type="button"
-                  onClick={handleAttendanceNext}
-                  disabled={guests.filter(g => !g.isPlusOne).some(g => guestRSVPs[g.id]?.attending === null)}
-                  className="btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Next: Meal Choices
-                </button>
+               <button
+                type="button"
+                onClick={handleAttendanceNext}
+                disabled={guests.filter(g => !g.isPlusOne).some(g => guestRSVPs[g.id]?.attending === null)}
+                className="btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {getAttendingGuests().length > 0 ? 'Next: Meal Choices' : 'Next: Song Request'}
+              </button>
               </motion.div>
             )}
 

@@ -37,7 +37,7 @@ export const WEDDING_CONFIG = {
 
   // Registry links
   registryLinks: [
-    { name: 'Prezola', url: 'https://prezola.com/buy/view/323791', description: 'Our main gift list' },
+    { name: 'Prezola', url: 'https://prezola.com/buy/view/323791', description: 'Our gift list' },
   ],
 
   // Accommodations

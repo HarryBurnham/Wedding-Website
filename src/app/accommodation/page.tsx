@@ -148,6 +148,8 @@ export default function TravelAccommodation() {
                 around 20 minutes by car or taxi. If you are flying into the UK, you will need an ETA. To apply for one  or get more information.
                 <Link
                 href={"https://www.gov.uk/eta"}
+                target="_blank"
+                rel= "noopener noreferrer"
                 className="text-burgundy-700 underline hover:text-burgundy-900 transition-colors"
                 > Click Here </Link>
               </p>

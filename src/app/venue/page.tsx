@@ -127,7 +127,7 @@ export default function Venue() {
           <p className="text-gray-600">
             We kindly request that guests wear a Suit or a Dress that is tea length or longer. Please see the 
               <Link
-              href="/info"
+              href="/dress-code"
               className="text-burgundy-700 underline hover:text-burgundy-900 transition-colors"
             > dress code </Link> 
             page for more information and pictures.   

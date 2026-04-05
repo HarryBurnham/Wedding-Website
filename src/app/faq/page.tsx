@@ -25,7 +25,7 @@ const faqs: FAQItem[] = [
         <br />
         Feel free to bring comfortable shoes to change into after the meal. For outfit inspiration, see the 
         <Link
-          href="/info"
+          href="/dress-code"
           className="text-burgundy-700 underline hover:text-burgundy-900 transition-colors"
         > dress code </Link> 
         page for pictures.

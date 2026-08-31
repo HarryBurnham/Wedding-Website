@@ -8,6 +8,7 @@ export const metadata = {
 
 export default function Registry() {
   const link = WEDDING_CONFIG.registryLinks[0];
+  const honeymoonFundUrl = 'https://monzo.me/payment-link/vwb6b3kqjztgconq3qq4l3b5drz5tkq';
 
   return (
     <main className="min-h-screen">
@@ -39,7 +40,7 @@ export default function Registry() {
               href={link.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="card block hover:shadow-md transition-shadow group"
+              className="card block hover:shadow-md transition-shadow group mb-12"
             >
               <div className="flex items-center justify-between">
                 <div>
@@ -66,6 +67,53 @@ export default function Registry() {
               </div>
             </a>
           )}
+
+          <div className="card mb-12 text-center">
+            <p className="text-gray-600 text-lg leading-relaxed">
+              We have booked a lovely cruise in the Mediterranean for our Honeymoon!
+              If you would like to contribute to our Honeymoon funds to help pay for
+              some excursions, flights, our hotel before our cruise, and some drinks
+              🍹😉, you can do so below.
+            </p>
+          </div>
+
+          <a
+            href={honeymoonFundUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="card block hover:shadow-md transition-shadow group"
+          >
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="font-display text-2xl text-burgundy-900 mb-2 group-hover:text-burgundy-700 transition-colors">
+                  Honeymoon Fund
+                </h3>
+                <p className="text-gray-600">
+                  Contribute via Monzo
+                </p>
+              </div>
+              <svg
+                className="w-6 h-6 text-burgundy-400 group-hover:text-burgundy-700 transition-colors"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                />
+              </svg>
+            </div>
+          </a>
+
+          <div className="mt-4 text-center">
+            <p className="text-gray-500 text-sm">
+              This link may only be able to be used by UK guests — if you have any
+              issues please let us know.
+            </p>
+          </div>
 
           <div className="mt-12 text-center">
             <p className="text-gray-500 text-sm">
